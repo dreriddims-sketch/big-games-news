@@ -4,6 +4,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import NewsPage from './pages/NewsPage';
 import ArticlePage from './pages/ArticlePage';
+import FeedPage from './pages/FeedPage';
+import ArchivePage from './pages/ArchivePage';
+import SignalsPage from './pages/SignalsPage';
 import PinEntry from './pages/PinEntry';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -32,6 +35,9 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<NewsPage />} />
         <Route path="/news" element={<NewsPage />} />
+        <Route path="/feed" element={<FeedPage />} />
+        <Route path="/archive" element={<ArchivePage />} />
+        <Route path="/signals" element={<SignalsPage />} />
         <Route path="/article/:slug" element={<ArticlePage />} />
         <Route path="/login/pin" element={<PinEntry />} />
         <Route path="/login" element={<Login />} />
