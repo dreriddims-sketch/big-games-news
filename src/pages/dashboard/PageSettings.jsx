@@ -1,14 +1,23 @@
 import React, { useState, useRef } from 'react';
-import { Layout, Save, Globe, Smartphone, Play, Image, Upload } from 'lucide-react';
+import { Layout, Save, Globe, Smartphone, Play, Image, Upload, Check, Loader2 } from 'lucide-react';
 import { mockDB, saveToMockSettings } from '../../lib/supabase';
 
 const PageSettings = () => {
   const [settings, setSettings] = useState(mockDB.settings);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const logoFileRef = useRef(null);
   const bannerFileRef = useRef(null);
 
   const handleSave = () => {
+    setIsSaving(true);
     saveToMockSettings(settings);
+    
+    setTimeout(() => {
+      setIsSaving(false);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    }, 1500);
   };
 
   const handleFileUpload = (e, field) => {
@@ -29,8 +38,29 @@ const PageSettings = () => {
            <h2 className="text-3xl font-black uppercase tracking-tighter italic">Content Layout Editor</h2>
            <p className="text-base text-text-secondary font-medium pl-1">Modify the primary Hero and Spotlight assets across the platform.</p>
         </div>
-        <button onClick={handleSave} className="btn-primary py-4 uppercase font-black text-xs tracking-widest shadow-2xl">
-          Apply Live Changes
+        <button 
+          onClick={handleSave} 
+          disabled={isSaving}
+          className={`btn-primary py-4 px-12 uppercase font-black text-xs tracking-[0.2em] shadow-2xl transition-all flex items-center gap-4 ${
+            showSuccess ? 'bg-emerald-500 text-white shadow-emerald-500/40' : ''
+          }`}
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="animate-spin" size={18} />
+              Broadcasting...
+            </>
+          ) : showSuccess ? (
+            <>
+              <Check size={18} />
+              Transmission_Success
+            </>
+          ) : (
+            <>
+              <Save size={18} />
+              Apply Live Changes
+            </>
+          )}
         </button>
       </div>
 

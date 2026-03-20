@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { Play, PlayCircle, ChevronRight, Pencil, Upload, Image as ImageIcon } from 'lucide-react';
 import { mockDB, dbEvents, saveToMockSettings, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
