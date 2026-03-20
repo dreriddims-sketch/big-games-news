@@ -113,9 +113,9 @@ const HeroBanner = () => {
               <img 
                 src={settings.hero_banner} 
                 alt="Main" 
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[4s] brightness-[0.5]"
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[4s]"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
               
               {editMode && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
