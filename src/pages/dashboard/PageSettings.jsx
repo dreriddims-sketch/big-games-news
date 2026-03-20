@@ -31,6 +31,22 @@ const PageSettings = () => {
     }
   };
 
+  const getEmbedUrl = (url) => {
+    if (!url) return '';
+    if (url.includes('youtube.com/embed/')) return url;
+    let videoId = '';
+    try {
+      if (url.includes('youtube.com/watch')) {
+        videoId = new URL(url).searchParams.get('v');
+      } else if (url.includes('youtu.be/')) {
+        videoId = new URL(url).pathname.slice(1);
+      }
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    } catch (e) {
+      return url;
+    }
+  };
+
   return (
     <div className="space-y-12">
       <div className="flex items-center justify-between">
@@ -168,7 +184,7 @@ const PageSettings = () => {
               </div>
               <div className="p-6 rounded-3xl glass border-white/10 mt-6 bg-red-500/5 aspect-video overflow-hidden shadow-2xl">
                  <iframe 
-                    src={settings.youtube_url} 
+                    src={getEmbedUrl(settings.youtube_url)} 
                     className="w-full h-full rounded-2xl transition-transform hover:scale-105 duration-700"
                     title="Preview"
                  ></iframe>

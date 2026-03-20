@@ -35,6 +35,22 @@ const HeroBanner = () => {
     }
   };
 
+  const getEmbedUrl = (url) => {
+    if (!url) return '';
+    if (url.includes('youtube.com/embed/')) return url;
+    let videoId = '';
+    try {
+      if (url.includes('youtube.com/watch')) {
+        videoId = new URL(url).searchParams.get('v');
+      } else if (url.includes('youtu.be/')) {
+        videoId = new URL(url).pathname.slice(1);
+      }
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    } catch (e) {
+      return url;
+    }
+  };
+
   return (
     <div className="w-full relative overflow-hidden bg-black/60">
       <div className="max-w-7xl mx-auto px-6 py-20 lg:py-32 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center relative z-10">
@@ -144,7 +160,7 @@ const HeroBanner = () => {
               
               <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
                 <iframe 
-                  src={settings.youtube_url} 
+                  src={getEmbedUrl(settings.youtube_url)} 
                   title="Spotlight" 
                   frameBorder="0" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
