@@ -1,6 +1,4 @@
-/* src/components/HeroBanner.jsx */
-import React, { useState, useEffect } from 'react';
-import { Play, PlayCircle, ChevronRight } from 'lucide-react';
+import { Play, PlayCircle, ChevronRight, Pencil, Upload, Image as ImageIcon } from 'lucide-react';
 import { mockDB, dbEvents, saveToMockSettings, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -8,6 +6,9 @@ const HeroBanner = () => {
   const { editMode } = useAuth();
   const [settings, setSettings] = useState(mockDB.settings);
   const [isEditing, setIsEditing] = useState(false);
+  const titleRef = React.useRef(null);
+  const fileInputRef = React.useRef(null);
+  const logoInputRef = React.useRef(null);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -22,25 +23,69 @@ const HeroBanner = () => {
     saveToMockSettings({ [field]: value });
   };
 
+  const handleFileChange = (e, field) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        saveToMockSettings({ [field]: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="w-full relative overflow-hidden bg-black/60">
       <div className="max-w-7xl mx-auto px-6 py-20 lg:py-32 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center relative z-10">
         {/* Main Content */}
         <div className="lg:col-span-12 space-y-12 text-center flex flex-col items-center">
-           <div className="space-y-6 max-w-5xl">
+           <div className="space-y-8 max-w-5xl relative group/hero">
+              {/* Logo Section */}
+              <div className="relative group/logo">
+                <div className="w-32 h-32 mx-auto relative cursor-pointer group">
+                  <img 
+                    src={settings.hero_logo} 
+                    alt="Logo" 
+                    className="w-full h-full object-contain filter brightness-100 group-hover:scale-110 transition-transform" 
+                  />
+                  {editMode && (
+                    <div 
+                      onClick={() => logoInputRef.current?.click()}
+                      className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity border-2 border-primary/40"
+                    >
+                      <ImageIcon size={24} className="text-primary" />
+                    </div>
+                  )}
+                  <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'hero_logo')} />
+                </div>
+              </div>
+
               <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.4em]">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                 Featured Intelligence
               </div>
               
-              <h1 
-                contentEditable={editMode}
-                onBlur={(e) => handleInlineEdit('hero_text', e.target.innerText)}
-                suppressContentEditableWarning={true}
-                className={`text-6xl md:text-9xl font-black leading-[0.9] uppercase tracking-tighter italic text-white transition-all select-none ${editMode ? 'bg-primary/5 rounded-3xl outline-none ring-1 ring-primary/20 p-6' : ''}`}
-              >
-                {settings.hero_text}
-              </h1>
+              <div className="relative inline-block">
+                <h1 
+                  ref={titleRef}
+                  contentEditable={editMode}
+                  onBlur={(e) => handleInlineEdit('hero_text', e.target.innerText)}
+                  suppressContentEditableWarning={true}
+                  className={`text-6xl md:text-9xl font-black leading-[0.9] uppercase tracking-tighter italic text-white transition-all select-none ${editMode ? 'bg-primary/5 rounded-3xl outline-none ring-1 ring-primary/20 p-6 pr-20' : ''}`}
+                >
+                  {settings.hero_text}
+                </h1>
+                
+                {editMode && (
+                  <button 
+                    onClick={() => titleRef.current?.focus()}
+                    className="absolute right-6 top-1/2 -translate-y-1/2 p-4 bg-primary text-black rounded-2xl hover:scale-110 transition-transform shadow-2xl shadow-primary/40 animation-pulse"
+                    title="Edit Headline"
+                  >
+                    <Pencil size={20} />
+                  </button>
+                )}
+              </div>
               
               <div className="flex flex-wrap items-center justify-center gap-8 pt-8">
                 <a href="#feed" className="btn-primary flex items-center gap-4 text-xs font-black italic uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-105 transition-transform active:scale-95">
@@ -54,7 +99,15 @@ const HeroBanner = () => {
         </div>
 
         {/* Feature Grid - Re-balanced */}
-        <div className="lg:col-span-8 group">
+        <div className="lg:col-span-8 group relative">
+           <input 
+             type="file" 
+             ref={fileInputRef} 
+             className="hidden" 
+             accept="image/*" 
+             onChange={(e) => handleFileChange(e, 'hero_banner')} 
+           />
+           
            <div className="premium-card relative min-h-[500px] flex flex-col justify-end p-0 rounded-3xl overflow-hidden border-white/10 shadow-3xl bg-black">
               <img 
                 src={settings.hero_banner} 
@@ -62,6 +115,17 @@ const HeroBanner = () => {
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[4s] brightness-[0.5]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+              
+              {editMode && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-4 px-12 py-6 bg-primary text-black text-xs font-black uppercase tracking-widest rounded-2xl hover:scale-110 transition-transform shadow-2xl shadow-primary/40"
+                  >
+                    <Upload size={20} /> Upload Artwork
+                  </button>
+                </div>
+              )}
            </div>
         </div>
 
