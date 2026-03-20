@@ -15,13 +15,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 /**
  * MOCK DATABASE (Used when Supabase is not configured)
  */
+const generateSlug = (title) => {
+  return title
+    .toLowerCase()
+    .replace(/[^\w ]+/g, '')
+    .replace(/ +/g, '-');
+};
+
 const getInitialPosts = () => {
   try {
     const saved = localStorage.getItem('bg_posts');
-    return saved ? JSON.parse(saved) : [
+    const posts = saved ? JSON.parse(saved) : [
       {
         id: 1,
         title: 'Big Games Launches Next-Gen Console Support',
+        slug: 'big-games-launches-next-gen-console-support',
         content: 'We are thrilled to announce that our entire library is now optimized for the latest generation of gaming hardware. Players can expect 4K resolution at 120FPS across all titles.',
         banner_url: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=2070',
         created_at: new Date().toISOString(),
@@ -31,6 +39,7 @@ const getInitialPosts = () => {
       {
         id: 2,
         title: 'Global eSports Tournament Announced',
+        slug: 'global-esports-tournament-announced',
         content: 'Get ready for the biggest event in our history. The Big Games World Championship kicks off this Summer with a $1M prize pool.',
         banner_url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=2071',
         created_at: new Date().toISOString(),
@@ -38,6 +47,12 @@ const getInitialPosts = () => {
         status: 'published'
       }
     ];
+
+    // Ensure all posts have slugs
+    return posts.map(post => ({
+      ...post,
+      slug: post.slug || generateSlug(post.title)
+    }));
   } catch (e) {
     console.error('Error parsing posts', e);
     return [];

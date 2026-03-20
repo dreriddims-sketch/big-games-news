@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import NewsPage from './pages/NewsPage';
+import ArticlePage from './pages/ArticlePage';
 import PinEntry from './pages/PinEntry';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -31,6 +32,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<NewsPage />} />
         <Route path="/news" element={<NewsPage />} />
+        <Route path="/article/:slug" element={<ArticlePage />} />
         <Route path="/login/pin" element={<PinEntry />} />
         <Route path="/login" element={<Login />} />
         

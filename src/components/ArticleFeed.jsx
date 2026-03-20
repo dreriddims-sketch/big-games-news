@@ -1,5 +1,6 @@
 /* src/components/ArticleFeed.jsx */
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Share2, Link2, ExternalLink, Calendar, User, ArrowRight } from 'lucide-react';
 import { mockDB, dbEvents, saveToMockPosts } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -87,9 +88,9 @@ const ArticleFeed = () => {
               </div>
 
               <div className="pt-8 flex items-center justify-between border-t border-white/5">
-                <button className="flex items-center gap-3 text-white font-black uppercase text-[11px] tracking-widest group/btn hover:text-primary transition-colors">
+                <Link to={`/article/${post.slug}`} className="flex items-center gap-3 text-white font-black uppercase text-[11px] tracking-widest group/btn hover:text-primary transition-colors">
                   Read Transmission <ArrowRight size={16} className="group-hover/btn:translate-x-2 transition-transform" />
-                </button>
+                </Link>
                 <div className="flex items-center gap-2">
                    <button className="p-3 glass rounded-xl hover:bg-primary/20 transition-all border-none">
                      <Share2 size={16} />
