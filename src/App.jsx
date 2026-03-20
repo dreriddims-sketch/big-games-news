@@ -53,7 +53,7 @@ function AppRoutes() {
 
 function App() {
   return (
-    <Router basename="/news">
+    <Router>
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>
