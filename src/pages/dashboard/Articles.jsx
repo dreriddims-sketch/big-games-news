@@ -90,7 +90,7 @@ const Articles = () => {
                    className="p-4 glass rounded-2xl hover:bg-white/10 hover:text-primary transition-all"
                    title="Edit Article"
                  >
-                    <SquarePen size={18} />
+                    <Edit3 size={18} />
                  </Link>
                  <button 
                    onClick={() => handleDelete(post.id)}

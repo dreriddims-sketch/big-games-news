@@ -10,58 +10,64 @@ const Navbar = () => {
   const isDashboard = location.pathname.startsWith('/dashboard');
 
   return (
-    <nav className="glass sticky top-0 z-50">
-      <div className="max-w-7xl auto px-6 h-20 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3">
+    <nav className="glass sticky top-0 z-50 border-b border-white/5 backdrop-blur-3xl">
+      <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between relative z-10">
+        <Link to="/" className="flex items-center gap-6 group">
           <div className="relative">
-            <img src="/logo.png" alt="Big Games" className="h-10 w-auto" />
+            <img src="/logo.png" alt="Big Games" className="h-10 w-auto relative z-10 brightness-200" />
             {isAdmin && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-black" title="Admin Active" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-black z-20" />
             )}
           </div>
-          <span className="text-2xl font-black bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent uppercase tracking-tighter">
-            News
-          </span>
+          <div className="flex flex-col -space-y-1">
+            <span className="text-3xl font-black text-white uppercase tracking-tighter italic leading-none transition-colors group-hover:text-primary">
+              Network
+            </span>
+            <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] leading-none">
+              News Terminal
+            </span>
+          </div>
         </Link>
         
-        {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-8">
-          <Link to="/" className={`text-sm font-semibold hover:text-primary transition-colors ${location.pathname === '/' ? 'text-primary' : 'text-text-secondary'}`}>
-            Home
-          </Link>
+        {/* Desktop links */}
+        <div className="hidden md:flex items-center gap-10">
+          {['Feed', 'Archive', 'Signals'].map(link => (
+            <Link key={link} to="/" className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40 hover:text-white transition-all">
+              {link}
+            </Link>
+          ))}
           
           {isAdmin && !isDashboard && (
-            <div className="flex items-center gap-3 px-4 py-2 glass rounded-2xl border-primary/20 bg-primary/5">
-              <span className={`text-[10px] font-black uppercase tracking-widest ${editMode ? 'text-primary' : 'text-text-secondary'}`}>
-                {editMode ? 'Edit Mode ON' : 'Edit Mode OFF'}
+            <div className="flex items-center gap-4 px-6 py-2 bg-white/5 rounded-full border border-white/5">
+              <span className={`text-[10px] font-black uppercase tracking-widest ${editMode ? 'text-primary' : 'text-white/30'}`}>
+                {editMode ? 'Edit Mode On' : 'Edit Mode Off'}
               </span>
               <button 
                 onClick={toggleEditMode}
-                className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${editMode ? 'bg-primary' : 'bg-white/10'}`}
+                className={`w-12 h-6 rounded-full relative transition-all duration-500 ${editMode ? 'bg-primary' : 'bg-white/10'}`}
               >
-                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all duration-300 ${editMode ? 'left-5.5' : 'left-0.5'} ${editMode ? 'translate-x-[18px]' : ''}`} />
+                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-all duration-500 ${editMode ? 'translate-x-6' : 'translate-x-0'}`} />
               </button>
             </div>
           )}
 
           {isAdmin ? (
-            <>
-              <div className="h-4 w-px bg-border-glass"></div>
+            <div className="flex items-center gap-8">
               <Link 
                 to="/dashboard" 
-                className={`flex items-center gap-2 text-sm font-semibold ${isDashboard ? 'text-primary' : 'text-text-secondary hover:text-primary transition-colors'}`}
+                className={`flex items-center gap-3 text-[11px] font-black uppercase tracking-widest ${isDashboard ? 'text-primary' : 'text-white/40 hover:text-white transition-all'}`}
               >
-                <LayoutDashboard size={18} />
+                <LayoutDashboard size={14} />
                 Dashboard
               </Link>
               {!isDashboard && (
-                <button onClick={logout} className="btn-secondary py-2 flex items-center gap-2 text-xs uppercase font-black">
-                  <LogOut size={16} /> Exit
+                <button onClick={logout} className="p-3 glass rounded-full hover:bg-red-500/20 hover:text-red-500 transition-all border-none">
+                  <LogOut size={16} />
                 </button>
               )}
-            </>
+            </div>
           ) : (
-            <Link to="/login/pin" className="btn-primary py-2 text-sm uppercase font-black tracking-widest">
+            <Link to="/login/pin" className="btn-primary py-3 px-8 text-[11px] uppercase font-black tracking-widest">
               Admin Access
             </Link>
           )}
