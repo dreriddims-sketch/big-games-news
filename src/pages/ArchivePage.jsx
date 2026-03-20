@@ -1,9 +1,27 @@
 /* src/pages/ArchivePage.jsx */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PodcastGrid from '../components/PodcastGrid';
 import { Disc, Music, Mic2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { mockDB, dbEvents, saveToMockSettings } from '../lib/supabase';
 
 const ArchivePage = () => {
+  const { editMode } = useAuth();
+  const [settings, setSettings] = useState(mockDB.settings);
+
+  useEffect(() => {
+    const handleUpdate = () => setSettings({...mockDB.settings});
+    dbEvents.addEventListener('change', handleUpdate);
+    return () => dbEvents.removeEventListener('change', handleUpdate);
+  }, []);
+
+  const handlePageEdit = (field, value) => {
+    if (!editMode) return;
+    const newData = { ...settings.page_data };
+    newData.archive[field] = value;
+    saveToMockSettings({ page_data: newData });
+  };
+
   return (
     <div className="min-h-screen bg-background text-white font-sans">
       <header className="max-w-7xl mx-auto px-6 pt-40 pb-20 space-y-12 border-b border-white/5">
@@ -13,11 +31,21 @@ const ArchivePage = () => {
               <Disc size={14} className="animate-spin" />
               Intelligence Audio Archive // DECODED
             </div>
-            <h1 className="text-7xl md:text-9xl font-black uppercase tracking-tighter italic leading-none">
-              Archive_Logs
+            <h1 
+              contentEditable={editMode}
+              onBlur={(e) => handlePageEdit('title', e.target.innerText)}
+              suppressContentEditableWarning={true}
+              className={`text-7xl md:text-9xl font-black uppercase tracking-tighter italic leading-none ${editMode ? 'bg-primary/5 rounded-2xl p-4 outline-none ring-1 ring-primary/20' : ''}`}
+            >
+              {settings.page_data.archive.title}
             </h1>
-            <p className="text-text-secondary text-xl max-w-2xl leading-relaxed font-medium">
-              Access the complete historical record of developer logs, community broadcasts, and sonic experimentations from the Big Games core.
+            <p 
+              contentEditable={editMode}
+              onBlur={(e) => handlePageEdit('desc', e.target.innerText)}
+              suppressContentEditableWarning={true}
+              className={`text-text-secondary text-xl max-w-2xl leading-relaxed font-medium ${editMode ? 'bg-primary/5 rounded-xl p-4 outline-none ring-1 ring-primary/20 mt-4 block' : ''}`}
+            >
+              {settings.page_data.archive.desc}
             </p>
           </div>
           

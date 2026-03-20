@@ -1,12 +1,28 @@
-/* src/pages/ArticlePage.jsx */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { mockDB } from '../lib/supabase';
+import { mockDB, dbEvents, saveToMockPosts } from '../lib/supabase';
 import { ArrowLeft, Calendar, Share2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const ArticlePage = () => {
   const { slug } = useParams();
-  const post = mockDB.posts.find(p => p.slug === slug);
+  const { editMode } = useAuth();
+  const [posts, setPosts] = useState(mockDB.posts);
+  const post = posts.find(p => p.slug === slug);
+
+  useEffect(() => {
+    const handleUpdate = () => setPosts([...mockDB.posts]);
+    dbEvents.addEventListener('change', handleUpdate);
+    return () => dbEvents.removeEventListener('change', handleUpdate);
+  }, []);
+
+  const handlePostEdit = (field, value) => {
+    if (!editMode || !post) return;
+    const newPosts = posts.map(p => 
+      p.id === post.id ? { ...p, [field]: value } : p
+    );
+    saveToMockPosts(newPosts);
+  };
 
   if (!post) {
     return (
@@ -33,7 +49,12 @@ const ArticlePage = () => {
               Intelligence Log // {new Date(post.created_at).toLocaleDateString()}
            </div>
            
-           <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-[0.9]">
+           <h1 
+             contentEditable={editMode}
+             onBlur={(e) => handlePostEdit('title', e.target.innerText)}
+             suppressContentEditableWarning={true}
+             className={`text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-[0.9] outline-none ${editMode ? 'bg-primary/5 rounded-3xl p-8 focus:ring-1 focus:ring-primary/20 block' : ''}`}
+           >
              {post.title}
            </h1>
 
@@ -44,10 +65,13 @@ const ArticlePage = () => {
 
         {/* Content */}
         <div className="space-y-12">
-           <div className="prose prose-invert prose-2xl max-w-none text-text-secondary leading-relaxed font-medium">
-             {post.content.split('\n').map((para, i) => (
-                <p key={i} className="mb-8">{para}</p>
-             ))}
+           <div 
+             contentEditable={editMode}
+             onBlur={(e) => handlePostEdit('content', e.target.innerText)}
+             suppressContentEditableWarning={true}
+             className={`prose prose-invert prose-2xl max-w-none text-text-secondary leading-relaxed font-medium outline-none ${editMode ? 'bg-primary/5 rounded-3xl p-8' : ''}`}
+           >
+             {post.content}
            </div>
            
            <div className="h-px w-full bg-white/5" />

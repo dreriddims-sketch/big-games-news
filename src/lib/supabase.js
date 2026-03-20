@@ -62,14 +62,22 @@ const getInitialPosts = () => {
 const getInitialSettings = () => {
   try {
     const saved = localStorage.getItem('bg_settings');
-    return saved ? JSON.parse(saved) : {
+    const defaults = {
       hero_text: 'The Future of Gaming is Here.',
       hero_banner: '/hero.png',
       hero_logo: '/logo.png',
       youtube_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
       popup_text: 'Join the Big Games Inner Circle',
-      popup_frequency: 30000 // 30s
+      popup_frequency: 30000,
+      page_data: {
+        feed: { title: 'The_Feed', desc: 'The latest unfiltered intelligence, transmissions, and developer news from across the Big Games Network.' },
+        archive: { title: 'Archive_Logs', desc: 'Access the complete historical record of developer logs, community broadcasts, and sonic experimentations from the Big Games core.' },
+        signals: { title: 'Signals_Hub', desc: 'Real-time telemetry and community node communication signals from the Big Games global infrastructure.' }
+      }
     };
+    if (!saved) return defaults;
+    const parsed = JSON.parse(saved);
+    return { ...defaults, ...parsed, page_data: { ...defaults.page_data, ...(parsed.page_data || {}) } };
   } catch (e) {
     console.error('Error parsing settings', e);
     return {
@@ -78,7 +86,12 @@ const getInitialSettings = () => {
       hero_logo: '/logo.png',
       youtube_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
       popup_text: 'Join the Big Games Inner Circle',
-      popup_frequency: 30000
+      popup_frequency: 30000,
+      page_data: {
+        feed: { title: 'The_Feed', desc: 'The latest unfiltered intelligence, transmissions, and developer news from across the Big Games Network.' },
+        archive: { title: 'Archive_Logs', desc: 'Access the complete historical record of developer logs, community broadcasts, and sonic experimentations from the Big Games core.' },
+        signals: { title: 'Signals_Hub', desc: 'Real-time telemetry and community node communication signals from the Big Games global infrastructure.' }
+      }
     };
   }
 };

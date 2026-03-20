@@ -1,9 +1,27 @@
 /* src/pages/FeedPage.jsx */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ArticleFeed from '../components/ArticleFeed';
 import { Network, Zap, Play } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { mockDB, dbEvents, saveToMockSettings } from '../lib/supabase';
 
 const FeedPage = () => {
+  const { editMode } = useAuth();
+  const [settings, setSettings] = useState(mockDB.settings);
+
+  useEffect(() => {
+    const handleUpdate = () => setSettings({...mockDB.settings});
+    dbEvents.addEventListener('change', handleUpdate);
+    return () => dbEvents.removeEventListener('change', handleUpdate);
+  }, []);
+
+  const handlePageEdit = (field, value) => {
+    if (!editMode) return;
+    const newData = { ...settings.page_data };
+    newData.feed[field] = value;
+    saveToMockSettings({ page_data: newData });
+  };
+
   return (
     <div className="min-h-screen bg-background text-white font-sans selection:bg-primary selection:text-black">
       <header className="max-w-7xl mx-auto px-6 pt-40 pb-20 border-b border-white/5 space-y-12">
@@ -13,11 +31,21 @@ const FeedPage = () => {
                  <Network size={14} className="animate-pulse" />
                  Transmission Feed // LIVE_STREAM
               </div>
-              <h1 className="text-7xl md:text-9xl font-black uppercase italic tracking-tighter leading-none">
-                 The_Feed
+              <h1 
+                contentEditable={editMode}
+                onBlur={(e) => handlePageEdit('title', e.target.innerText)}
+                suppressContentEditableWarning={true}
+                className={`text-7xl md:text-9xl font-black uppercase italic tracking-tighter leading-none ${editMode ? 'bg-primary/5 rounded-2xl p-4 outline-none ring-1 ring-primary/20' : ''}`}
+              >
+                 {settings.page_data.feed.title}
               </h1>
-              <p className="text-text-secondary text-xl font-medium max-w-2xl leading-relaxed">
-                 The latest unfiltered intelligence, transmissions, and developer news from across the Big Games Network.
+              <p 
+                contentEditable={editMode}
+                onBlur={(e) => handlePageEdit('desc', e.target.innerText)}
+                suppressContentEditableWarning={true}
+                className={`text-text-secondary text-xl font-medium max-w-2xl leading-relaxed ${editMode ? 'bg-primary/5 rounded-xl p-4 outline-none ring-1 ring-primary/20 mt-4 block' : ''}`}
+              >
+                 {settings.page_data.feed.desc}
               </p>
            </div>
            
