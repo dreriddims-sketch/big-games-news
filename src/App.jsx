@@ -30,6 +30,7 @@ function AppRoutes() {
       <Navbar />
       <Routes>
         <Route path="/" element={<NewsPage />} />
+        <Route path="/news" element={<NewsPage />} />
         <Route path="/login/pin" element={<PinEntry />} />
         <Route path="/login" element={<Login />} />
         
@@ -52,7 +53,7 @@ function AppRoutes() {
 
 function App() {
   return (
-    <Router basename="/news">
+    <Router>
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>
