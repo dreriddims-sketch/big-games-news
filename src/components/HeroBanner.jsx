@@ -43,9 +43,9 @@ const HeroBanner = () => {
               </h1>
               
               <div className="flex flex-wrap items-center justify-center gap-8 pt-8">
-                <button className="btn-primary flex items-center gap-3 text-lg font-black italic uppercase tracking-tighter shadow-2xl shadow-primary/20">
-                  Read Intel <ChevronRight size={24} />
-                </button>
+                <a href="#feed" className="btn-primary flex items-center gap-4 text-xs font-black italic uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-105 transition-transform active:scale-95">
+                  Read Intel <ChevronRight size={18} />
+                </a>
                 <div className="flex items-center gap-6 text-[11px] font-black uppercase tracking-[0.3em] text-white/40">
                   REF_0x822 // ALPHA
                 </div>

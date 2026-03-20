@@ -31,11 +31,15 @@ const Navbar = () => {
         
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-10">
-          {['Feed', 'Archive', 'Signals'].map(link => (
-            <Link key={link} to="/" className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40 hover:text-white transition-all">
-              {link}
-            </Link>
-          ))}
+          <a href="#feed" className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40 hover:text-white transition-all cursor-pointer">
+            Feed
+          </a>
+          <a href="#podcasts" className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40 hover:text-white transition-all cursor-pointer">
+            Archive
+          </a>
+          <a href="#podcasts" className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40 hover:text-white transition-all cursor-pointer">
+            Signals
+          </a>
           
           {isAdmin && !isDashboard && (
             <div className="flex items-center gap-4 px-6 py-2 bg-white/5 rounded-full border border-white/5">

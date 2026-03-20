@@ -27,6 +27,10 @@
 }
 
 @layer components {
+  #feed, #podcasts {
+    scroll-margin-top: 140px;
+  }
+
   .bg-grid {
     background-image: 
       linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
