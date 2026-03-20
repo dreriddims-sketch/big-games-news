@@ -1,0 +1,96 @@
+/* src/lib/supabase.js */
+import { createClient } from '@supabase/supabase-js'
+
+// IMPORTANT: Replace with actual Supabase URL and Key
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-url.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
+
+// For demo purposes, we'll gracefully handle missing keys
+export const isSupabaseConfigured = 
+  import.meta.env.VITE_SUPABASE_URL && 
+  import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+/**
+ * MOCK DATABASE (Used when Supabase is not configured)
+ */
+const getInitialPosts = () => {
+  try {
+    const saved = localStorage.getItem('bg_posts');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 1,
+        title: 'Big Games Launches Next-Gen Console Support',
+        content: 'We are thrilled to announce that our entire library is now optimized for the latest generation of gaming hardware. Players can expect 4K resolution at 120FPS across all titles.',
+        banner_url: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=2070',
+        created_at: new Date().toISOString(),
+        order_index: 0,
+        status: 'published'
+      },
+      {
+        id: 2,
+        title: 'Global eSports Tournament Announced',
+        content: 'Get ready for the biggest event in our history. The Big Games World Championship kicks off this Summer with a $1M prize pool.',
+        banner_url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=2071',
+        created_at: new Date().toISOString(),
+        order_index: 1,
+        status: 'published'
+      }
+    ];
+  } catch (e) {
+    console.error('Error parsing posts', e);
+    return [];
+  }
+};
+
+const getInitialSettings = () => {
+  try {
+    const saved = localStorage.getItem('bg_settings');
+    return saved ? JSON.parse(saved) : {
+      hero_text: 'The Future of Gaming is Here.',
+      hero_banner: '/hero.png',
+      hero_logo: '/logo.png',
+      youtube_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      popup_text: 'Join the Big Games Inner Circle',
+      popup_frequency: 30000 // 30s
+    };
+  } catch (e) {
+    console.error('Error parsing settings', e);
+    return {
+      hero_text: 'The Future of Gaming is Here.',
+      hero_banner: '/hero.png',
+      hero_logo: '/logo.png',
+      youtube_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      popup_text: 'Join the Big Games Inner Circle',
+      popup_frequency: 30000
+    };
+  }
+};
+
+export const mockDB = {
+  posts: getInitialPosts(),
+  podcasts: [
+    { id: 1, title: 'Episode 42: The Future of VR', audio_url: '#' },
+    { id: 2, title: 'Episode 41: Dev Log #12', audio_url: '#' },
+    { id: 3, title: 'Episode 40: Community Q&A', audio_url: '#' },
+    { id: 4, title: 'Episode 39: Soundtrack Breakdown', audio_url: '#' },
+  ],
+  settings: getInitialSettings()
+};
+
+// Simple event system for local "real-time" updates
+export const dbEvents = new EventTarget();
+export const notifyChange = () => dbEvents.dispatchEvent(new Event('change'));
+
+export const saveToMockSettings = (newSettings) => {
+  mockDB.settings = { ...mockDB.settings, ...newSettings };
+  localStorage.setItem('bg_settings', JSON.stringify(mockDB.settings));
+  notifyChange();
+};
+
+export const saveToMockPosts = (newPosts) => {
+  mockDB.posts = newPosts;
+  localStorage.setItem('bg_posts', JSON.stringify(mockDB.posts));
+  notifyChange();
+};
