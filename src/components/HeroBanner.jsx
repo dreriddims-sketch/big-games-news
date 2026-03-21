@@ -71,8 +71,21 @@ const HeroBanner = () => {
              <img 
                src={settings.hero_brand_banner || '/brand-banner.png'} 
                alt="Big Games Banner Desktop" 
-               className="w-full h-auto block transition-transform duration-[2s] group-hover/logo:scale-[1.01] bg-black"
+               className="w-full h-auto block transition-transform duration-[2s] group-hover/logo:scale-[1.01] bg-black relative z-10"
              />
+
+             {/* Transparent Video Overlay */}
+             <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden mix-blend-screen opacity-60 mix-blend-lighten">
+                <iframe
+                 src={`${getEmbedUrl(settings.youtube_url)}?autoplay=1&mute=1&controls=0&loop=1&playlist=${settings.youtube_url ? settings.youtube_url.split(/[=/]/).pop() : 'dQw4w9WgXcQ'}&disablekb=1`}
+                 className="absolute top-1/2 left-1/2 w-[150vw] md:w-[120vw] h-[150vw] md:h-[120vw] -translate-x-1/2 -translate-y-1/2 opacity-70 scale-125"
+                 title="Banner Background Loop"
+                 frameBorder="0"
+                 allow="autoplay; encrypted-media"
+                 allowFullScreen
+               />
+               <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]" />
+             </div>
              
              {editMode && (
                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 ring-4 ring-inset ring-primary/50 opacity-0 group-hover/logo:opacity-100 transition-opacity z-20 backdrop-blur-md">
