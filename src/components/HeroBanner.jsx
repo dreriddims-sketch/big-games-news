@@ -85,7 +85,7 @@ const HeroBanner = () => {
              {/* Transparent Video Overlay */}
              <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden mix-blend-screen opacity-60 mix-blend-lighten">
                 <iframe
-                 src={`${getEmbedUrl(settings.banner_youtube_url || settings.youtube_url)}?autoplay=1&mute=1&controls=0&loop=1&playlist=${extractVideoId(settings.banner_youtube_url || settings.youtube_url)}&disablekb=1&vq=hd1080`}
+                 src={`${getEmbedUrl(settings.banner_youtube_url || settings.youtube_url)}?autoplay=1&mute=1&playsinline=1&controls=0&loop=1&playlist=${extractVideoId(settings.banner_youtube_url || settings.youtube_url)}&disablekb=1&vq=hd1080`}
                  className="absolute top-1/2 left-1/2 w-[150vw] md:w-[120vw] h-[150vw] md:h-[120vw] -translate-x-1/2 -translate-y-1/2 opacity-70 scale-125"
                  title="Banner Background Loop"
                  frameBorder="0"
