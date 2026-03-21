@@ -71,7 +71,7 @@ const HeroBanner = () => {
              <img 
                src={settings.hero_brand_banner || '/brand-banner.png'} 
                alt="Big Games Banner Desktop" 
-               className="w-full h-auto object-cover md:object-contain min-h-[40px] md:min-h-[120px] max-h-[250px] transition-transform duration-[2s] group-hover/logo:scale-[1.01] bg-black"
+               className="w-full h-auto block transition-transform duration-[2s] group-hover/logo:scale-[1.01] bg-black"
              />
              
              {editMode && (
