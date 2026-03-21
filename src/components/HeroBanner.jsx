@@ -90,13 +90,7 @@ const HeroBanner = () => {
           <div className="lg:col-span-12 space-y-8 md:space-y-12 text-center flex flex-col items-center">
              <div className="space-y-8 max-w-5xl relative group/hero">
 
-
-              <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.4em]">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                Featured Intelligence
-              </div>
-              
-              <div className="relative inline-block">
+              <div className="relative inline-block mt-4">
                 <h1 
                   ref={titleRef}
                   contentEditable={editMode}
