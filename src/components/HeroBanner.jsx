@@ -57,8 +57,8 @@ const HeroBanner = () => {
         {/* Main Content */}
         <div className="lg:col-span-12 space-y-8 md:space-y-12 text-center flex flex-col items-center">
            <div className="space-y-8 max-w-5xl relative group/hero">
-              {/* Logo Section */}
-              <div className="relative group/logo inline-block">
+              {/* Banner Section */}
+              <div className="relative group/logo flex justify-center w-full px-4 md:px-0">
                 <input 
                   type="file" 
                   ref={logoInputRef} 
@@ -68,22 +68,22 @@ const HeroBanner = () => {
                 />
                 
                 <div 
-                  className={`relative p-6 md:p-10 rounded-[3rem] bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl transition-all duration-700 hover:bg-white/[0.04] hover:border-primary/30 group-hover/logo:shadow-[0_0_60px_rgba(255,153,0,0.15)] ${editMode ? 'cursor-pointer' : ''}`}
+                  className={`relative p-4 md:p-8 w-full max-w-sm md:max-w-lg lg:max-w-2xl rounded-2xl md:rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl transition-all duration-700 hover:bg-white/[0.04] hover:border-primary/30 group-hover/logo:shadow-[0_0_60px_rgba(255,153,0,0.15)] flex justify-center items-center overflow-hidden ${editMode ? 'cursor-pointer' : ''}`}
                   onClick={() => editMode && logoInputRef.current?.click()}
                 >
                    {/* Ambient Core Glow */}
-                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-primary/20 blur-[80px] rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-1000 mix-blend-screen" />
+                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/20 blur-[100px] rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-1000 mix-blend-screen" />
                    
                    <img 
                      src={settings.hero_logo} 
-                     alt="Brand Logo" 
-                     className="h-20 md:h-32 lg:h-40 w-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] group-hover/logo:drop-shadow-[0_0_25px_rgba(255,153,0,0.4)] transition-all duration-700 group-hover/logo:scale-105"
+                     alt="Brand Banner" 
+                     className="w-full h-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] group-hover/logo:drop-shadow-[0_0_25px_rgba(255,153,0,0.4)] transition-all duration-700 group-hover/logo:scale-[1.03]"
                    />
                    
                    {editMode && (
-                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 opacity-0 group-hover/logo:opacity-100 transition-opacity rounded-[3rem] z-20 border border-primary/50 backdrop-blur-sm">
-                       <Upload className="text-primary mb-2 animate-bounce" size={28} />
-                       <span className="text-xs font-black uppercase tracking-widest text-primary drop-shadow-md">Upload Brand Identity</span>
+                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 opacity-0 group-hover/logo:opacity-100 transition-opacity z-20 border border-primary/50 backdrop-blur-sm">
+                       <Upload className="text-primary mb-2 animate-bounce flex-shrink-0" size={32} />
+                       <span className="text-sm font-black uppercase tracking-widest text-primary drop-shadow-md text-center max-w-[80%] mx-auto">Upload Brand Banner</span>
                      </div>
                    )}
                 </div>
