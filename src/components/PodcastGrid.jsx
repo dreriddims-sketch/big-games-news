@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 const PodcastGrid = () => {
   const { editMode } = useAuth();
   const fileInputRef = useRef(null);
-  const [activePodcastId, setActivePodcastId] = useState(null);
+  const activePodcastIdRef = useRef(null);
   const [podcasts, setPodcasts] = useState(mockDB.podcasts);
 
   useEffect(() => {
@@ -25,16 +25,36 @@ const PodcastGrid = () => {
 
   const handleImageClick = (id) => {
     if (!editMode) return;
-    setActivePodcastId(id);
+    activePodcastIdRef.current = id;
     fileInputRef.current?.click();
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file && activePodcastId) {
+    const targetId = activePodcastIdRef.current;
+    
+    if (file && targetId) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        handleInlineEdit(activePodcastId, 'image_url', reader.result);
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const size = 400; // Perfect for podcast grid display
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          
+          // Center crop to square
+          const minDim = Math.min(img.width, img.height);
+          const startX = (img.width - minDim) / 2;
+          const startY = (img.height - minDim) / 2;
+          
+          ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // Compress to save storage
+          
+          handleInlineEdit(targetId, 'image_url', dataUrl);
+        };
+        img.src = reader.result;
       };
       reader.readAsDataURL(file);
     }

@@ -139,6 +139,10 @@ export const saveToMockPosts = (newPosts) => {
 
 export const saveToMockPodcasts = (newPodcasts) => {
   mockDB.podcasts = newPodcasts;
-  localStorage.setItem('bg_podcasts', JSON.stringify(mockDB.podcasts));
+  try {
+    localStorage.setItem('bg_podcasts', JSON.stringify(mockDB.podcasts));
+  } catch(e) {
+    console.warn('Storage quota exceeded, changes saved to memory only');
+  }
   notifyChange();
 };
