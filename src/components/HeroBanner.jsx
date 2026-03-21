@@ -58,22 +58,34 @@ const HeroBanner = () => {
         <div className="lg:col-span-12 space-y-8 md:space-y-12 text-center flex flex-col items-center">
            <div className="space-y-8 max-w-5xl relative group/hero">
               {/* Logo Section */}
-              <div className="relative group/logo">
-                <div className="w-32 h-32 mx-auto relative cursor-pointer group">
-                  <img 
-                    src={settings.hero_logo} 
-                    alt="Logo" 
-                    className="w-full h-full object-contain filter brightness-100 group-hover:scale-110 transition-transform" 
-                  />
-                  {editMode && (
-                    <div 
-                      onClick={() => logoInputRef.current?.click()}
-                      className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity border-2 border-primary/40"
-                    >
-                      <ImageIcon size={24} className="text-primary" />
-                    </div>
-                  )}
-                  <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'hero_logo')} />
+              <div className="relative group/logo inline-block">
+                <input 
+                  type="file" 
+                  ref={logoInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={(e) => handleFileChange(e, 'hero_logo')} 
+                />
+                
+                <div 
+                  className={`relative p-6 md:p-10 rounded-[3rem] bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl transition-all duration-700 hover:bg-white/[0.04] hover:border-primary/30 group-hover/logo:shadow-[0_0_60px_rgba(255,153,0,0.15)] ${editMode ? 'cursor-pointer' : ''}`}
+                  onClick={handleLogoClick}
+                >
+                   {/* Ambient Core Glow */}
+                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-primary/20 blur-[80px] rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-1000 mix-blend-screen" />
+                   
+                   <img 
+                     src={settings.hero_logo} 
+                     alt="Brand Logo" 
+                     className="h-20 md:h-32 lg:h-40 w-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] group-hover/logo:drop-shadow-[0_0_25px_rgba(255,153,0,0.4)] transition-all duration-700 group-hover/logo:scale-105"
+                   />
+                   
+                   {editMode && (
+                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 opacity-0 group-hover/logo:opacity-100 transition-opacity rounded-[3rem] z-20 border border-primary/50 backdrop-blur-sm">
+                       <Upload className="text-primary mb-2 animate-bounce" size={28} />
+                       <span className="text-xs font-black uppercase tracking-widest text-primary drop-shadow-md">Upload Brand Identity</span>
+                     </div>
+                   )}
                 </div>
               </div>
 
