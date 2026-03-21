@@ -40,8 +40,9 @@
 
   .premium-card {
     background: var(--bg-card);
-    backdrop-filter: blur(24px);
-    @apply border border-white/5 rounded-[2rem] transition-all duration-700;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    @apply border border-white/5 rounded-[2rem] transition-colors duration-500;
   }
 
   .premium-card:hover {
