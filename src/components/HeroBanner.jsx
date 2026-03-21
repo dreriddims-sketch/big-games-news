@@ -53,9 +53,9 @@ const HeroBanner = () => {
 
   return (
     <div className="w-full relative overflow-hidden bg-black/60">
-      <div className="max-w-7xl mx-auto px-6 py-20 lg:py-32 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center relative z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-20 lg:py-32 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center relative z-10">
         {/* Main Content */}
-        <div className="lg:col-span-12 space-y-12 text-center flex flex-col items-center">
+        <div className="lg:col-span-12 space-y-8 md:space-y-12 text-center flex flex-col items-center">
            <div className="space-y-8 max-w-5xl relative group/hero">
               {/* Logo Section */}
               <div className="relative group/logo">
@@ -88,7 +88,7 @@ const HeroBanner = () => {
                   contentEditable={editMode}
                   onBlur={(e) => handleInlineEdit('hero_text', e.target.innerText)}
                   suppressContentEditableWarning={true}
-                  className={`text-6xl md:text-9xl font-black leading-[0.9] uppercase tracking-tighter italic text-white transition-all select-none ${editMode ? 'bg-primary/5 rounded-3xl outline-none ring-1 ring-primary/20 p-6 pr-20' : ''}`}
+                  className={`text-5xl md:text-8xl lg:text-9xl font-black leading-[0.9] md:leading-[0.9] uppercase tracking-tighter italic text-white transition-all select-none ${editMode ? 'bg-primary/5 rounded-3xl outline-none ring-1 ring-primary/20 p-4 md:p-6 pr-16 md:pr-20' : ''}`}
                 >
                   {settings.hero_text}
                 </h1>
@@ -116,7 +116,7 @@ const HeroBanner = () => {
         </div>
 
         {/* Feature Grid - Re-balanced */}
-        <div className="lg:col-span-8 group relative">
+        <div className="lg:col-span-8 group relative w-full">
            <input 
              type="file" 
              ref={fileInputRef} 
@@ -125,7 +125,7 @@ const HeroBanner = () => {
              onChange={(e) => handleFileChange(e, 'hero_banner')} 
            />
            
-           <div className="premium-card relative min-h-[500px] flex flex-col justify-end p-0 rounded-3xl overflow-hidden border-white/10 shadow-3xl bg-black">
+           <div className="premium-card relative min-h-[350px] md:min-h-[500px] flex flex-col justify-end p-0 rounded-2xl md:rounded-3xl overflow-hidden border-white/10 shadow-3xl bg-black">
               <img 
                 src={settings.hero_banner} 
                 alt="Main" 
@@ -146,8 +146,8 @@ const HeroBanner = () => {
            </div>
         </div>
 
-        <div className="lg:col-span-4">
-           <div className="premium-card p-10 flex flex-col gap-8 rounded-3xl border-white/10 glass-panel">
+        <div className="lg:col-span-4 w-full">
+           <div className="premium-card p-6 md:p-10 flex flex-col gap-6 md:gap-8 rounded-2xl md:rounded-3xl border-white/10 glass-panel">
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-black uppercase italic flex items-center gap-4">
                   <PlayCircle className="text-primary" size={28} />

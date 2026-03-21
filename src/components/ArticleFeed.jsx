@@ -25,9 +25,9 @@ const ArticleFeed = () => {
 
   return (
     <div id="feed" className="max-w-7xl mx-auto px-6 py-32 space-y-24 relative z-10">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-12 pb-16 border-b border-white/10">
-        <div className="space-y-6">
-          <h2 className="text-6xl md:text-9xl font-black uppercase tracking-tighter italic leading-none select-none">Feed_Data</h2>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-12 pb-10 md:pb-16 border-b border-white/10">
+        <div className="space-y-4 md:space-y-6">
+          <h2 className="text-5xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter italic leading-none select-none">Feed_Data</h2>
           <p className="text-text-secondary font-medium text-xl max-w-2xl leading-relaxed text-tech">
             Unfiltered transmissions from the core developer nodes. 
           </p>
@@ -67,13 +67,13 @@ const ArticleFeed = () => {
             </div>
 
             {/* Content Section */}
-            <div className="flex-1 p-8 md:p-10 flex flex-col justify-between gap-8">
+            <div className="flex-1 p-6 md:p-10 flex flex-col justify-between gap-6 md:gap-8">
               <div className="space-y-4">
                 <h3 
                   contentEditable={editMode}
                   onBlur={(e) => handleInlineEdit(post.id, 'title', e.target.innerText)}
                   suppressContentEditableWarning={true}
-                  className={`text-2xl md:text-3xl font-black uppercase tracking-tight leading-none italic transition-colors group-hover:text-primary ${editMode ? 'bg-primary/5 rounded-xl p-2 outline-none ring-1 ring-primary/20' : ''}`}
+                  className={`text-xl md:text-3xl font-black uppercase tracking-tight leading-none italic transition-colors group-hover:text-primary ${editMode ? 'bg-primary/5 rounded-xl p-2 outline-none ring-1 ring-primary/20' : ''}`}
                 >
                   {post.title}
                 </h3>

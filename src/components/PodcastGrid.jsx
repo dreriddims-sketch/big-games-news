@@ -66,14 +66,14 @@ const PodcastGrid = () => {
       {editMode && (
          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
       )}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-12 pb-12 border-b border-white/5">
-        <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-12 pb-8 md:pb-12 border-b border-white/5">
+        <div className="space-y-4 md:space-y-6">
           <div className="inline-flex items-center gap-3 text-primary font-black uppercase tracking-widest text-[10px] bg-primary/5 px-6 py-2 rounded-full border border-primary/10">
             <Mic size={14} className="animate-pulse" /> Intelligence Original
           </div>
-          <h2 className="text-6xl md:text-9xl font-black uppercase tracking-tighter italic leading-none transition-colors hover:text-primary">Podcasts</h2>
+          <h2 className="text-5xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter italic leading-none transition-colors hover:text-primary">Podcasts</h2>
         </div>
-        <button className="btn-secondary group flex items-center gap-4">
+        <button className="btn-secondary group flex items-center justify-center gap-4 w-full md:w-auto">
           Access Archive <ChevronRight size={18} className="group-hover:translate-x-2 transition-transform" />
         </button>
       </div>
@@ -82,7 +82,7 @@ const PodcastGrid = () => {
         {podcasts.map((podcast, i) => (
           <div 
             key={podcast.id} 
-            className="premium-card group p-12 flex flex-col items-center text-center gap-12 rounded-3xl"
+            className="premium-card group p-8 md:p-12 flex flex-col items-center text-center gap-8 md:gap-12 rounded-3xl"
           >
             <div className={`relative ${editMode ? 'cursor-pointer' : ''}`} onClick={() => handleImageClick(podcast.id)}>
               <div className="w-44 h-44 rounded-full bg-gradient-to-br from-primary/5 to-white/5 flex items-center justify-center group-hover:scale-105 transition-transform duration-1000 border border-white/5 shadow-inner overflow-hidden relative">
