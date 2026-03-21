@@ -73,11 +73,10 @@ const HeroBanner = () => {
                alt="Big Games Banner Desktop" 
                className="w-full h-auto block transition-transform duration-[2s] group-hover/logo:scale-[1.01] bg-black relative z-10"
              />
-
              {/* Transparent Video Overlay */}
              <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden mix-blend-screen opacity-60 mix-blend-lighten">
                 <iframe
-                 src={`${getEmbedUrl(settings.youtube_url)}?autoplay=1&mute=1&controls=0&loop=1&playlist=${settings.youtube_url ? settings.youtube_url.split(/[=/]/).pop() : 'dQw4w9WgXcQ'}&disablekb=1`}
+                 src={`${getEmbedUrl(settings.banner_youtube_url || settings.youtube_url)}?autoplay=1&mute=1&controls=0&loop=1&playlist=${(settings.banner_youtube_url || settings.youtube_url || '').split(/[=/]/).pop()}&disablekb=1`}
                  className="absolute top-1/2 left-1/2 w-[150vw] md:w-[120vw] h-[150vw] md:h-[120vw] -translate-x-1/2 -translate-y-1/2 opacity-70 scale-125"
                  title="Banner Background Loop"
                  frameBorder="0"
@@ -88,9 +87,20 @@ const HeroBanner = () => {
              </div>
              
              {editMode && (
-               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 ring-4 ring-inset ring-primary/50 opacity-0 group-hover/logo:opacity-100 transition-opacity z-20 backdrop-blur-md">
-                 <Upload className="text-primary mb-2 animate-bounce flex-shrink-0" size={32} />
-                 <span className="text-sm font-black uppercase tracking-[0.3em] text-primary drop-shadow-md text-center shadow-black">Update Full-Width Banner</span>
+               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 ring-4 ring-inset ring-primary/50 opacity-0 group-hover/logo:opacity-100 transition-opacity z-20 backdrop-blur-md gap-4">
+                 <div className="flex flex-col items-center pointer-events-none">
+                   <Upload className="text-primary mb-2 animate-bounce flex-shrink-0" size={32} />
+                   <span className="text-sm font-black uppercase tracking-[0.3em] text-primary drop-shadow-md text-center shadow-black">Update Full-Width Banner Image</span>
+                 </div>
+                 
+                 <input 
+                   type="text"
+                   value={settings.banner_youtube_url || ''}
+                   onChange={(e) => handleInlineEdit('banner_youtube_url', e.target.value)}
+                   onClick={(e) => e.stopPropagation()}
+                   placeholder="Or Paste YouTube URL Here..."
+                   className="w-3/4 max-w-md bg-black/50 border border-white/20 rounded-full py-3 px-6 text-white text-xs font-bold text-center outline-none focus:border-primary focus:ring-1 focus:ring-primary pointer-events-auto backdrop-blur-2xl shadow-2xl transition-all"
+                 />
                </div>
              )}
           </div>
