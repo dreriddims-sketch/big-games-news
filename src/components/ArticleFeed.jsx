@@ -27,10 +27,10 @@ const ArticleFeed = () => {
   return (
     <div id="feed" className="max-w-7xl mx-auto px-6 py-32 space-y-24 relative z-10">
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        viewport={{ once: false, margin: "-50px" }}
+        transition={{ type: "spring", bounce: 0.4, duration: 0.8 }}
         className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-12 pb-10 md:pb-16 border-b border-white/10"
       >
         <div className="space-y-4 md:space-y-6">
@@ -54,10 +54,10 @@ const ArticleFeed = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
         {posts.map((post, i) => (
           <motion.div
-            initial={{ opacity: 0, x: i % 2 === 0 ? -100 : 100 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.7, delay: i * 0.1, ease: "easeOut" }}
+            initial={{ opacity: 0, x: i % 2 === 0 ? -150 : 150, scale: 0.9 }}
+            whileInView={{ opacity: 1, x: 0, scale: 1 }}
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ type: "spring", bounce: 0.4, duration: 0.8, delay: i * 0.1 }}
             key={post.id}
           >
             <article 

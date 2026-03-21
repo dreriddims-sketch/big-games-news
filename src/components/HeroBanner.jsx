@@ -121,8 +121,9 @@ const HeroBanner = () => {
           {/* Main Content */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ type: "spring", bounce: 0.5, duration: 1, delay: 0.1 }}
             className="lg:col-span-12 space-y-8 md:space-y-12 text-center flex flex-col items-center"
           >
              <div className="space-y-8 max-w-5xl relative group/hero">
@@ -162,10 +163,10 @@ const HeroBanner = () => {
 
         {/* Feature Grid - Re-balanced */}
         <motion.div 
-           initial={{ opacity: 0, x: -100 }}
-           whileInView={{ opacity: 1, x: 0 }}
-           viewport={{ once: true, margin: "-50px" }}
-           transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
+           initial={{ opacity: 0, x: -150, scale: 0.95 }}
+           whileInView={{ opacity: 1, x: 0, scale: 1 }}
+           viewport={{ once: false, margin: "-50px" }}
+           transition={{ type: "spring", bounce: 0.4, duration: 1, delay: 0.1 }}
            className="lg:col-span-8 group relative w-full"
         >
            <input 
@@ -198,10 +199,10 @@ const HeroBanner = () => {
         </motion.div>
 
         <motion.div 
-           initial={{ opacity: 0, x: 100 }}
-           whileInView={{ opacity: 1, x: 0 }}
-           viewport={{ once: true, margin: "-50px" }}
-           transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
+           initial={{ opacity: 0, x: 150, scale: 0.95 }}
+           whileInView={{ opacity: 1, x: 0, scale: 1 }}
+           viewport={{ once: false, margin: "-50px" }}
+           transition={{ type: "spring", bounce: 0.4, duration: 1, delay: 0.2 }}
            className="lg:col-span-4 w-full"
         >
            <div className="premium-card p-6 md:p-10 flex flex-col gap-6 md:gap-8 rounded-2xl md:rounded-3xl border-white/10 glass-panel">

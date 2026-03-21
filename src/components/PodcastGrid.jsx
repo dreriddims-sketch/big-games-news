@@ -68,10 +68,10 @@ const PodcastGrid = () => {
          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
       )}
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        viewport={{ once: false, margin: "-50px" }}
+        transition={{ type: "spring", bounce: 0.4, duration: 0.8 }}
         className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-12 pb-8 md:pb-12 border-b border-white/5"
       >
         <div className="space-y-4 md:space-y-6">
@@ -88,10 +88,10 @@ const PodcastGrid = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
         {podcasts.map((podcast, i) => (
           <motion.div
-            initial={{ opacity: 0, x: i % 2 === 0 ? -100 : 100 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.6, delay: i * 0.1, ease: "easeOut" }}
+            initial={{ opacity: 0, x: i % 2 === 0 ? -150 : 150, scale: 0.85 }}
+            whileInView={{ opacity: 1, x: 0, scale: 1 }}
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ type: "spring", bounce: 0.5, duration: 0.8, delay: i * 0.1 }}
             key={podcast.id}
             className="h-full"
           >
