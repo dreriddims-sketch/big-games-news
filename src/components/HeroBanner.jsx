@@ -69,7 +69,7 @@ const HeroBanner = () => {
                 
                 <div 
                   className={`relative p-6 md:p-10 rounded-[3rem] bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl transition-all duration-700 hover:bg-white/[0.04] hover:border-primary/30 group-hover/logo:shadow-[0_0_60px_rgba(255,153,0,0.15)] ${editMode ? 'cursor-pointer' : ''}`}
-                  onClick={handleLogoClick}
+                  onClick={() => editMode && logoInputRef.current?.click()}
                 >
                    {/* Ambient Core Glow */}
                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-primary/20 blur-[80px] rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-1000 mix-blend-screen" />
