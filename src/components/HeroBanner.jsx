@@ -52,39 +52,44 @@ const HeroBanner = () => {
   };
 
   return (
-    <div className="w-full relative overflow-hidden bg-black/60">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-20 lg:py-32 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center relative z-10">
-        {/* Main Content */}
-        <div className="lg:col-span-12 space-y-8 md:space-y-12 text-center flex flex-col items-center">
-           <div className="space-y-8 max-w-5xl relative group/hero">
-               {/* Banner Section */}
-              <div className="relative group/logo flex justify-center w-full px-4 md:px-0">
-                <input 
-                  type="file" 
-                  ref={logoInputRef} 
-                  className="hidden" 
-                  accept="image/*" 
-                  onChange={(e) => handleFileChange(e, 'hero_brand_banner')} 
-                />
-                
-                <div 
-                  className={`relative w-full max-w-lg md:max-w-2xl lg:max-w-4xl transition-all duration-700 flex justify-center items-center overflow-visible ${editMode ? 'cursor-pointer hover:opacity-80' : ''}`}
-                  onClick={() => editMode && logoInputRef.current?.click()}
-                >
-                   <img 
-                     src={settings.hero_brand_banner || '/brand-banner.png'} 
-                     alt="Big Games Banner" 
-                     className="w-full h-auto object-contain relative z-10 transition-all duration-700 group-hover/logo:scale-[1.03] drop-shadow-2xl"
-                   />
-                   
-                   {editMode && (
-                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 opacity-0 group-hover/logo:opacity-100 transition-opacity z-20 border border-primary/50 backdrop-blur-sm">
-                       <Upload className="text-primary mb-2 animate-bounce flex-shrink-0" size={32} />
-                       <span className="text-sm font-black uppercase tracking-widest text-primary drop-shadow-md text-center max-w-[80%] mx-auto">Upload Brand Banner</span>
-                     </div>
-                   )}
-                </div>
-              </div>
+    <div className="w-full flex flex-col">
+      <div className="w-full border-b border-primary/10">
+        {/* Full Bleed Banner Section */}
+        <div className="relative group/logo w-full bg-black flex overflow-hidden">
+          <input 
+            type="file" 
+            ref={logoInputRef} 
+            className="hidden" 
+            accept="image/*" 
+            onChange={(e) => handleFileChange(e, 'hero_brand_banner')} 
+          />
+          
+          <div 
+            className={`relative w-full ${editMode ? 'cursor-pointer' : ''}`}
+            onClick={() => editMode && logoInputRef.current?.click()}
+          >
+             <img 
+               src={settings.hero_brand_banner || '/brand-banner.png'} 
+               alt="Big Games Banner Desktop" 
+               className="w-full h-auto object-cover md:object-contain min-h-[40px] md:min-h-[120px] max-h-[250px] transition-transform duration-[2s] group-hover/logo:scale-[1.01] bg-black"
+             />
+             
+             {editMode && (
+               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 ring-4 ring-inset ring-primary/50 opacity-0 group-hover/logo:opacity-100 transition-opacity z-20 backdrop-blur-md">
+                 <Upload className="text-primary mb-2 animate-bounce flex-shrink-0" size={32} />
+                 <span className="text-sm font-black uppercase tracking-[0.3em] text-primary drop-shadow-md text-center shadow-black">Update Full-Width Banner</span>
+               </div>
+             )}
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full relative overflow-hidden bg-black/60 pt-0">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 pb-12 pt-8 md:pb-20 md:pt-16 lg:py-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center relative z-10">
+          {/* Main Content */}
+          <div className="lg:col-span-12 space-y-8 md:space-y-12 text-center flex flex-col items-center">
+             <div className="space-y-8 max-w-5xl relative group/hero">
+
 
               <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.4em]">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
@@ -197,6 +202,7 @@ const HeroBanner = () => {
                  </button>
               </div>
            </div>
+        </div>
         </div>
       </div>
     </div>
