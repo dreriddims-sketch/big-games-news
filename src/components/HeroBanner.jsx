@@ -153,9 +153,6 @@ const HeroBanner = () => {
                   <PlayCircle className="text-primary" size={28} />
                   Spotlight
                 </h3>
-                <div className="text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full font-black uppercase tracking-widest border border-primary/20">
-                   Rec_Live
-                </div>
               </div>
               
               <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
