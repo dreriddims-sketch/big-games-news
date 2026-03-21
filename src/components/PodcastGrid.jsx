@@ -1,21 +1,51 @@
-import React from 'react';
-import { Play, Disc, ChevronRight, Mic } from 'lucide-react';
-import { mockDB, saveToMockPosts } from '../lib/supabase';
+import React, { useState, useRef, useEffect } from 'react';
+import { Play, Disc, ChevronRight, Mic, Upload } from 'lucide-react';
+import { mockDB, saveToMockPodcasts, dbEvents } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
 const PodcastGrid = () => {
   const { editMode } = useAuth();
+  const fileInputRef = useRef(null);
+  const [activePodcastId, setActivePodcastId] = useState(null);
+  const [podcasts, setPodcasts] = useState(mockDB.podcasts);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setPodcasts([...mockDB.podcasts]);
+    };
+    dbEvents.addEventListener('change', handleUpdate);
+    return () => dbEvents.removeEventListener('change', handleUpdate);
+  }, []);
 
   const handleInlineEdit = (id, field, value) => {
     if (!editMode) return;
-    // Note: Podcasts are currently just mock data in mockDB. 
-    // If we wanted to persist them, we'd need a saveToMockPodcasts function.
-    // For now, I'll just update the local object to show it's possible.
-    mockDB.podcasts = mockDB.podcasts.map(p => p.id === id ? { ...p, [field]: value } : p);
+    const newPodcasts = mockDB.podcasts.map(p => p.id === id ? { ...p, [field]: value } : p);
+    saveToMockPodcasts(newPodcasts);
+  };
+
+  const handleImageClick = (id) => {
+    if (!editMode) return;
+    setActivePodcastId(id);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && activePodcastId) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleInlineEdit(activePodcastId, 'image_url', reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   return (
     <div id="podcasts" className="py-24 px-6 max-w-7xl mx-auto space-y-20 relative z-10">
+      {editMode && (
+         <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+      )}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-12 pb-12 border-b border-white/5">
         <div className="space-y-6">
           <div className="inline-flex items-center gap-3 text-primary font-black uppercase tracking-widest text-[10px] bg-primary/5 px-6 py-2 rounded-full border border-primary/10">
@@ -29,14 +59,32 @@ const PodcastGrid = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
-        {mockDB.podcasts.map((podcast, i) => (
+        {podcasts.map((podcast, i) => (
           <div 
             key={podcast.id} 
             className="premium-card group p-12 flex flex-col items-center text-center gap-12 rounded-3xl"
           >
-            <div className="relative">
-              <div className="w-44 h-44 rounded-full bg-gradient-to-br from-primary/5 to-white/5 flex items-center justify-center group-hover:scale-105 transition-transform duration-1000 border border-white/5 shadow-inner">
+            <div className={`relative ${editMode ? 'cursor-pointer' : ''}`} onClick={() => handleImageClick(podcast.id)}>
+              <div className="w-44 h-44 rounded-full bg-gradient-to-br from-primary/5 to-white/5 flex items-center justify-center group-hover:scale-105 transition-transform duration-1000 border border-white/5 shadow-inner overflow-hidden relative">
+                
+                {podcast.image_url && (
+                  <img 
+                    src={podcast.image_url} 
+                    alt={podcast.title} 
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${editMode ? 'group-hover:opacity-40' : 'group-hover:opacity-80'}`} 
+                  />
+                )}
+                
+                <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+                
                 <Play size={44} className="text-white group-hover:text-primary transition-colors ml-1 relative z-10" />
+                
+                {editMode && (
+                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                     <Upload className="text-primary mb-2" size={24} />
+                     <span className="text-[10px] font-black uppercase text-primary tracking-widest">Upload</span>
+                   </div>
+                )}
               </div>
             </div>
             

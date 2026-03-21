@@ -59,6 +59,21 @@ const getInitialPosts = () => {
   }
 };
 
+const getInitialPodcasts = () => {
+  try {
+    const saved = localStorage.getItem('bg_podcasts');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, title: 'Episode 42: The Future of VR', audio_url: '#', image_url: '' },
+      { id: 2, title: 'Episode 41: Dev Log #12', audio_url: '#', image_url: '' },
+      { id: 3, title: 'Episode 40: Community Q&A', audio_url: '#', image_url: '' },
+      { id: 4, title: 'Episode 39: Soundtrack Breakdown', audio_url: '#', image_url: '' },
+    ];
+  } catch (e) {
+    console.error('Error parsing podcasts', e);
+    return [];
+  }
+};
+
 const getInitialSettings = () => {
   try {
     const saved = localStorage.getItem('bg_settings');
@@ -102,12 +117,7 @@ const getInitialSettings = () => {
 
 export const mockDB = {
   posts: getInitialPosts(),
-  podcasts: [
-    { id: 1, title: 'Episode 42: The Future of VR', audio_url: '#' },
-    { id: 2, title: 'Episode 41: Dev Log #12', audio_url: '#' },
-    { id: 3, title: 'Episode 40: Community Q&A', audio_url: '#' },
-    { id: 4, title: 'Episode 39: Soundtrack Breakdown', audio_url: '#' },
-  ],
+  podcasts: getInitialPodcasts(),
   settings: getInitialSettings()
 };
 
@@ -124,5 +134,11 @@ export const saveToMockSettings = (newSettings) => {
 export const saveToMockPosts = (newPosts) => {
   mockDB.posts = newPosts;
   localStorage.setItem('bg_posts', JSON.stringify(mockDB.posts));
+  notifyChange();
+};
+
+export const saveToMockPodcasts = (newPodcasts) => {
+  mockDB.podcasts = newPodcasts;
+  localStorage.setItem('bg_podcasts', JSON.stringify(mockDB.podcasts));
   notifyChange();
 };
