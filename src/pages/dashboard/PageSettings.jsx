@@ -1,13 +1,61 @@
-/* src/pages/dashboard/PageSettings.jsx */
-import React, { useState } from 'react';
-import { Layout, Save, Globe, Smartphone, Play, Image } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Layout, Save, Globe, Smartphone, Play, Image, Upload, Check, Loader2 } from 'lucide-react';
 import { mockDB, saveToMockSettings } from '../../lib/supabase';
 
 const PageSettings = () => {
   const [settings, setSettings] = useState(mockDB.settings);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const logoFileRef = useRef(null);
+  const bannerFileRef = useRef(null);
 
   const handleSave = () => {
+    setIsSaving(true);
     saveToMockSettings(settings);
+    
+    setTimeout(() => {
+      setIsSaving(false);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    }, 1500);
+  };
+
+  const handleFileUpload = (e, field) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSettings({ ...settings, [field]: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const getEmbedUrl = (url) => {
+    if (!url) return '';
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    
+    let videoId = '';
+    if (match && match[2].length === 11) {
+      videoId = match[2];
+    } else if (url.length === 11) {
+      videoId = url;
+    } else {
+      try {
+        if (url.includes('youtube.com/watch')) {
+          videoId = new URL(url).searchParams.get('v') || url;
+        } else if (url.includes('youtu.be/')) {
+          videoId = new URL(url).pathname.slice(1) || url;
+        }
+      } catch (e) {}
+    }
+    
+    if (!videoId) {
+      videoId = url.split(/[=/]/).pop()?.split('?')[0] || '';
+    }
+    
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
   };
 
   return (
@@ -17,8 +65,29 @@ const PageSettings = () => {
            <h2 className="text-3xl font-black uppercase tracking-tighter italic">Content Layout Editor</h2>
            <p className="text-base text-text-secondary font-medium pl-1">Modify the primary Hero and Spotlight assets across the platform.</p>
         </div>
-        <button onClick={handleSave} className="btn-primary py-4 uppercase font-black text-xs tracking-widest shadow-2xl">
-          Apply Live Changes
+        <button 
+          onClick={handleSave} 
+          disabled={isSaving}
+          className={`btn-primary py-4 px-12 uppercase font-black text-xs tracking-[0.2em] shadow-2xl transition-all flex items-center gap-4 ${
+            showSuccess ? 'bg-emerald-500 text-white shadow-emerald-500/40' : ''
+          }`}
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="animate-spin" size={18} />
+              Broadcasting...
+            </>
+          ) : showSuccess ? (
+            <>
+              <Check size={18} />
+              Transmission_Success
+            </>
+          ) : (
+            <>
+              <Save size={18} />
+              Apply Live Changes
+            </>
+          )}
         </button>
       </div>
 
@@ -41,16 +110,62 @@ const PageSettings = () => {
                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-primary transition-all text-xl font-black tracking-tight"
                  />
               </div>
+
               <div className="space-y-2">
-                 <label className="text-[10px] text-text-secondary uppercase font-black tracking-widest pl-1">Primary Banner Artwork (URL)</label>
-                 <div className="relative group">
-                    <Image className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors" size={20} />
-                    <input 
-                      type="text" 
-                      value={settings.hero_banner}
-                      onChange={(e) => setSettings({...settings, hero_banner: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-primary transition-all text-xs font-bold"
-                    />
+                 <label className="text-[10px] text-text-secondary uppercase font-black tracking-widest pl-1">Hero Brand Logo</label>
+                 <div className="flex gap-4">
+                    <div className="relative group flex-1">
+                       <button 
+                         onClick={() => logoFileRef.current?.click()}
+                         className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-primary transition-colors z-20"
+                         title="Click to Upload Logo"
+                       >
+                         <Image size={20} />
+                       </button>
+                       <input 
+                         type="text" 
+                         value={settings.hero_logo}
+                         onChange={(e) => setSettings({...settings, hero_logo: e.target.value})}
+                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-primary transition-all text-xs font-bold"
+                       />
+                       <input type="file" ref={logoFileRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'hero_logo')} />
+                    </div>
+                    <label 
+                      onClick={() => logoFileRef.current?.click()}
+                      className="btn-secondary py-4 px-6 flex items-center gap-3 cursor-pointer hover:text-primary"
+                    >
+                       <Upload size={18} />
+                       <span className="text-[10px] font-black uppercase">Upload</span>
+                    </label>
+                 </div>
+              </div>
+
+              <div className="space-y-2">
+                 <label className="text-[10px] text-text-secondary uppercase font-black tracking-widest pl-1">Primary Banner Artwork</label>
+                 <div className="flex gap-4">
+                    <div className="relative group flex-1">
+                       <button 
+                          onClick={() => bannerFileRef.current?.click()}
+                          className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-primary transition-colors z-20"
+                          title="Click to Upload Artwork"
+                       >
+                          <Image size={20} />
+                       </button>
+                       <input 
+                         type="text" 
+                         value={settings.hero_banner}
+                         onChange={(e) => setSettings({...settings, hero_banner: e.target.value})}
+                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-primary transition-all text-xs font-bold"
+                       />
+                       <input type="file" ref={bannerFileRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'hero_banner')} />
+                    </div>
+                    <label 
+                      onClick={() => bannerFileRef.current?.click()}
+                      className="btn-secondary py-4 px-6 flex items-center gap-3 cursor-pointer hover:text-primary"
+                    >
+                       <Upload size={18} />
+                       <span className="text-[10px] font-black uppercase">Upload</span>
+                    </label>
                  </div>
               </div>
            </div>
@@ -80,7 +195,7 @@ const PageSettings = () => {
               </div>
               <div className="p-6 rounded-3xl glass border-white/10 mt-6 bg-red-500/5 aspect-video overflow-hidden shadow-2xl">
                  <iframe 
-                    src={settings.youtube_url} 
+                    src={getEmbedUrl(settings.youtube_url)} 
                     className="w-full h-full rounded-2xl transition-transform hover:scale-105 duration-700"
                     title="Preview"
                  ></iframe>

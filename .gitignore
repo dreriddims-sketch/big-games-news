@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary working folders
+src/working-app
+src/.working-app-hide
+/tmp/*
+build
+out
+.vercel

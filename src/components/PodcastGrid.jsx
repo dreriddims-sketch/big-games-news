@@ -1,46 +1,145 @@
-import { Play, Disc, ChevronRight, Mic } from 'lucide-react';
-import { mockDB } from '../lib/supabase';
+import React, { useState, useRef, useEffect } from 'react';
+import { Play, Disc, ChevronRight, Mic, Upload } from 'lucide-react';
+import { mockDB, saveToMockPodcasts, dbEvents } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import { motion } from 'framer-motion';
 
 const PodcastGrid = () => {
-  return (
-    <div id="podcasts" className="pt-24 pb-12 px-6 max-w-7xl mx-auto space-y-12">
-      <div className="flex items-center justify-between border-b border-white/5 pb-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-widest text-xs">
-            <Mic size={16} /> Latest Audio
-          </div>
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">Big Games Podcasts</h2>
-        </div>
-        <button className="btn-secondary group">
-          Browse Library <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-        </button>
-      </div>
+  const { editMode } = useAuth();
+  const fileInputRef = useRef(null);
+  const activePodcastIdRef = useRef(null);
+  const [podcasts, setPodcasts] = useState(mockDB.podcasts);
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-8">
-        {mockDB.podcasts.map((podcast, i) => (
-          <div key={podcast.id} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${i * 100}ms` }}>
-            <div className="aspect-square rounded-3xl overflow-hidden glass border-white/10 group-hover:border-primary/40 transition-colors p-4 flex flex-col items-center justify-center text-center gap-6 group-hover:shadow-[0_0_30px_rgba(245,158,11,0.1)]">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                  <Play size={32} className="text-primary group-hover:fill-primary" />
-                </div>
-                <div className="absolute -bottom-2 -right-2 p-2 bg-black/80 rounded-full border border-white/10 group-hover:rotate-45 transition-transform">
-                  <Disc size={16} className="text-primary animate-spin-slow" />
-                </div>
-              </div>
-              
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold text-white uppercase tracking-tighter group-hover:text-primary transition-colors">
-                  {podcast.title}
-                </h3>
-                <p className="text-[10px] text-text-secondary uppercase font-bold tracking-widest opacity-60">
-                   Big Games Original
-                </p>
+  useEffect(() => {
+    const handleUpdate = () => {
+      setPodcasts([...mockDB.podcasts]);
+    };
+    dbEvents.addEventListener('change', handleUpdate);
+    return () => dbEvents.removeEventListener('change', handleUpdate);
+  }, []);
+
+  const handleInlineEdit = (id, field, value) => {
+    if (!editMode) return;
+    const newPodcasts = mockDB.podcasts.map(p => p.id === id ? { ...p, [field]: value } : p);
+    saveToMockPodcasts(newPodcasts);
+  };
+
+  const handleImageClick = (id) => {
+    if (!editMode) return;
+    activePodcastIdRef.current = id;
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    const targetId = activePodcastIdRef.current;
+    
+    if (file && targetId) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const size = 400; // Perfect for podcast grid display
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          
+          // Center crop to square
+          const minDim = Math.min(img.width, img.height);
+          const startX = (img.width - minDim) / 2;
+          const startY = (img.height - minDim) / 2;
+          
+          ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // Compress to save storage
+          
+          handleInlineEdit(targetId, 'image_url', dataUrl);
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  return (
+    <div id="podcasts" className="py-24 px-6 max-w-7xl mx-auto space-y-20 relative z-10">
+      {editMode && (
+         <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+      )}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-12 pb-8 md:pb-12 border-b border-white/5"
+      >
+        <div className="space-y-4 md:space-y-6">
+          <div className="inline-flex items-center gap-3 text-primary font-black uppercase tracking-widest text-[10px] bg-primary/5 px-6 py-2 rounded-full border border-primary/10">
+            <Mic size={14} className="animate-pulse" /> Intelligence Original
+          </div>
+          <h2 className="text-5xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter italic leading-none transition-colors hover:text-primary">Podcasts</h2>
+        </div>
+        <button className="btn-secondary group flex items-center justify-center gap-4 w-full md:w-auto">
+          Access Archive <ChevronRight size={18} className="group-hover:translate-x-2 transition-transform" />
+        </button>
+      </motion.div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+        {podcasts.map((podcast, i) => (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, delay: i * 0.1, ease: "easeOut" }}
+            key={podcast.id}
+            className="h-full"
+          >
+            <div 
+              className="premium-card group p-8 md:p-12 h-full flex flex-col items-center text-center gap-8 md:gap-12 rounded-3xl"
+            >
+            <div className={`relative ${editMode ? 'cursor-pointer' : ''}`} onClick={() => handleImageClick(podcast.id)}>
+              <div className="w-44 h-44 rounded-full bg-gradient-to-br from-primary/5 to-white/5 flex items-center justify-center group-hover:scale-105 transition-transform duration-1000 border border-white/5 shadow-inner overflow-hidden relative">
+                
+                {podcast.image_url && (
+                  <img 
+                    src={podcast.image_url} 
+                    alt={podcast.title} 
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${editMode ? 'group-hover:opacity-40' : 'group-hover:opacity-80'}`} 
+                  />
+                )}
+                
+                <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+                
+                <Play size={44} className="text-white group-hover:text-primary transition-colors ml-1 relative z-10" />
+                
+                {editMode && (
+                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                     <Upload className="text-primary mb-2" size={24} />
+                     <span className="text-[10px] font-black uppercase text-primary tracking-widest">Upload</span>
+                   </div>
+                )}
               </div>
             </div>
             
-            <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-5 transition-opacity rounded-3xl pointer-events-none" />
-          </div>
+            <div className="space-y-6 w-full">
+              <h3 
+                contentEditable={editMode}
+                onBlur={(e) => handleInlineEdit(podcast.id, 'title', e.target.innerText)}
+                suppressContentEditableWarning={true}
+                className={`text-2xl font-black text-white uppercase tracking-tight italic transition-colors group-hover:text-primary ${editMode ? 'bg-primary/5 rounded-xl px-2 py-4 outline-none ring-1 ring-primary/20' : ''}`}
+              >
+                {podcast.title}
+              </h3>
+              <div className="flex flex-col gap-4 items-center">
+                <p className="text-[10px] text-white/30 uppercase font-black tracking-widest leading-none">
+                   Stream ID #0{podcast.id}
+                </p>
+                <div className="w-12 h-0.5 bg-white/5 group-hover:w-20 group-hover:bg-primary/20 transition-all duration-700" />
+              </div>
+            </div>
+            </div>
+          </motion.div>
         ))}
       </div>
     </div>

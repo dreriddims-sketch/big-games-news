@@ -1,9 +1,10 @@
-/* src/components/NewsletterPopup.jsx */
 import React, { useState, useEffect } from 'react';
 import { X, Mail, Bell, Sparkles } from 'lucide-react';
-import { mockDB, dbEvents } from '../lib/supabase';
+import { mockDB, dbEvents, saveToMockSettings } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 const NewsletterPopup = () => {
+  const { editMode } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -14,26 +15,41 @@ const NewsletterPopup = () => {
     const handleUpdate = () => setSettings({...mockDB.settings});
     dbEvents.addEventListener('change', handleUpdate);
     
-    const timer = setTimeout(() => {
-      const shown = sessionStorage.getItem('newsletter_shown');
-      if (!shown) {
-        setIsOpen(true);
-      }
-    }, settings.popup_frequency || 5000);
+    // Always open if in editMode for admin to see
+    if (editMode) {
+      setIsOpen(true);
+    } else {
+      const timer = setTimeout(() => {
+        const shown = sessionStorage.getItem('newsletter_shown');
+        if (!shown) {
+          setIsOpen(true);
+        }
+      }, settings.popup_frequency || 5000);
 
-    return () => {
-      clearTimeout(timer);
-      dbEvents.removeEventListener('change', handleUpdate);
-    };
-  }, [settings.popup_frequency]);
+      return () => {
+        clearTimeout(timer);
+        dbEvents.removeEventListener('change', handleUpdate);
+      };
+    }
+
+    return () => dbEvents.removeEventListener('change', handleUpdate);
+  }, [settings.popup_frequency, editMode]);
 
   const closePopup = () => {
     setIsOpen(false);
-    sessionStorage.setItem('newsletter_shown', 'true');
+    if (!editMode) {
+      sessionStorage.setItem('newsletter_shown', 'true');
+    }
+  };
+
+  const handleInlineEdit = (field, value) => {
+    if (!editMode) return;
+    saveToMockSettings({ [field]: value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (editMode) return; // Don't submit in edit mode
     setSubmitted(true);
     setTimeout(closePopup, 3000);
   };
@@ -42,13 +58,21 @@ const NewsletterPopup = () => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-500">
-      <div className="max-w-md w-full premium-card relative overflow-hidden p-0 shadow-[0_0_100px_rgba(245,158,11,0.2)] border-primary/20">
+      <div className={`max-w-md w-full premium-card relative overflow-hidden p-0 shadow-[0_0_100px_rgba(245,158,11,0.2)] border-primary/20 ${editMode ? 'border-2 border-primary ring-2 ring-primary/20' : ''}`}>
         <button 
           onClick={closePopup}
           className="absolute top-4 right-4 p-2 glass rounded-full hover:bg-white/10 transition-colors z-20"
         >
           <X size={20} />
         </button>
+
+        {editMode && (
+          <div className="absolute top-4 left-4 z-20">
+             <div className="glass px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-primary border-primary/20 bg-primary/10">
+                Live Preview Mode
+             </div>
+          </div>
+        )}
 
         <div className="p-8 space-y-8">
           <div className="text-center space-y-4">
@@ -60,9 +84,14 @@ const NewsletterPopup = () => {
              <h2 className="text-4xl font-black uppercase tracking-tighter leading-none italic">
                 Get Exclusive Access
              </h2>
-             <p className="text-text-secondary text-sm font-medium leading-relaxed">
+             <div 
+                contentEditable={editMode}
+                onBlur={(e) => handleInlineEdit('popup_text', e.target.innerText)}
+                suppressContentEditableWarning={true}
+                className={`text-text-secondary text-sm font-medium leading-relaxed transition-all ${editMode ? 'bg-primary/5 rounded-lg p-2 outline-none cursor-text ring-1 ring-primary/20' : ''}`}
+             >
                 {settings.popup_text}
-             </p>
+             </div>
           </div>
 
           {!submitted ? (

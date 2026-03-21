@@ -7,17 +7,24 @@ import NewsletterPopup from '../components/NewsletterPopup';
 
 const NewsPage = () => {
   return (
-    <div className="flex-1 animate-in fade-in duration-1000">
-      {/* Podcasts Section (directly under Nav) */}
-      <PodcastGrid />
+    <div className="flex-1 bg-deep relative min-h-screen flex flex-col">
+      {/* Subtle Background Layer */}
+      <div className="fixed inset-0 bg-grid pointer-events-none opacity-20 z-0" />
       
-      {/* Hero Section */}
-      <section className="py-12 border-y border-white/5 bg-gradient-to-b from-transparent to-bg-darker/30">
-        <HeroBanner />
-      </section>
+      <main className="relative z-10 flex-1">
+        {/* 1. Hero Spotlight - Focused & Premium */}
+        <section className="border-b border-white/5 bg-black/40 backdrop-blur-3xl">
+          <HeroBanner />
+        </section>
+        
+        <div className="max-w-[1440px] mx-auto">
+          {/* 2. Content Hub - Podcasts / Intelligence */}
+          <PodcastGrid />
 
-      {/* Main Content Feed */}
-      <ArticleFeed />
+          {/* 3. Main Transmission Feed */}
+          <ArticleFeed />
+        </div>
+      </main>
 
       {/* Global Newsletter Popup */}
       <NewsletterPopup />
