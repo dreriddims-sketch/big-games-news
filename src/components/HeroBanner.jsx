@@ -57,27 +57,24 @@ const HeroBanner = () => {
         {/* Main Content */}
         <div className="lg:col-span-12 space-y-8 md:space-y-12 text-center flex flex-col items-center">
            <div className="space-y-8 max-w-5xl relative group/hero">
-              {/* Banner Section */}
+               {/* Banner Section */}
               <div className="relative group/logo flex justify-center w-full px-4 md:px-0">
                 <input 
                   type="file" 
                   ref={logoInputRef} 
                   className="hidden" 
                   accept="image/*" 
-                  onChange={(e) => handleFileChange(e, 'hero_logo')} 
+                  onChange={(e) => handleFileChange(e, 'hero_brand_banner')} 
                 />
                 
                 <div 
-                  className={`relative p-4 md:p-8 w-full max-w-sm md:max-w-lg lg:max-w-2xl rounded-2xl md:rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl transition-all duration-700 hover:bg-white/[0.04] hover:border-primary/30 group-hover/logo:shadow-[0_0_60px_rgba(255,153,0,0.15)] flex justify-center items-center overflow-hidden ${editMode ? 'cursor-pointer' : ''}`}
+                  className={`relative w-full max-w-lg md:max-w-2xl lg:max-w-4xl transition-all duration-700 flex justify-center items-center overflow-visible ${editMode ? 'cursor-pointer hover:opacity-80' : ''}`}
                   onClick={() => editMode && logoInputRef.current?.click()}
                 >
-                   {/* Ambient Core Glow */}
-                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/20 blur-[100px] rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-1000 mix-blend-screen" />
-                   
                    <img 
-                     src={settings.hero_logo} 
-                     alt="Brand Banner" 
-                     className="w-full h-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] group-hover/logo:drop-shadow-[0_0_25px_rgba(255,153,0,0.4)] transition-all duration-700 group-hover/logo:scale-[1.03]"
+                     src={settings.hero_brand_banner || '/brand-banner.png'} 
+                     alt="Big Games Banner" 
+                     className="w-full h-auto object-contain relative z-10 transition-all duration-700 group-hover/logo:scale-[1.03] drop-shadow-2xl"
                    />
                    
                    {editMode && (

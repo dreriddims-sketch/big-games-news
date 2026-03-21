@@ -81,6 +81,7 @@ const getInitialSettings = () => {
       hero_text: 'The Future of Gaming is Here.',
       hero_banner: '/hero.png',
       hero_logo: '/logo.png',
+      hero_brand_banner: '/brand-banner.png',
       youtube_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
       spotlight_title: 'Quantum Node Evolution',
       spotlight_desc: 'Deep dive into the decentralized architecture powering the future of the network.',
