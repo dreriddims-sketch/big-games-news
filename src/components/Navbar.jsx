@@ -28,12 +28,12 @@ const Navbar = () => {
           <div className="relative">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/20 blur-[30px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 mix-blend-screen" />
             <img 
-              src="/logo.png" 
+              src="/nav-logo.png" 
               alt="Big Games" 
-              className="h-10 md:h-12 w-auto relative z-10 drop-shadow-[0_0_12px_rgba(255,255,255,0.2)] group-hover:drop-shadow-[0_0_20px_rgba(255,153,0,0.6)] group-hover:scale-110 transition-all duration-500" 
+              className="h-12 md:h-16 w-auto object-contain relative z-10 drop-shadow-[0_0_12px_rgba(255,255,255,0.2)] group-hover:drop-shadow-[0_0_20px_rgba(255,153,0,0.6)] group-hover:scale-[1.05] transition-all duration-500" 
             />
             {isAdmin && (
-              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-primary rounded-full border-2 border-black z-20 shadow-[0_0_10px_rgba(255,153,0,0.8)]" />
+              <div className="absolute top-1 -right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-primary rounded-full border-2 border-black z-20 shadow-[0_0_10px_rgba(255,153,0,0.8)]" />
             )}
           </div>
           <div className="flex flex-col -space-y-1">
