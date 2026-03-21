@@ -120,8 +120,8 @@ const HeroBanner = () => {
         <div className="max-w-7xl mx-auto px-4 md:px-6 pb-12 pt-8 md:pb-20 md:pt-16 lg:py-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center relative z-10">
           {/* Main Content */}
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
             className="lg:col-span-12 space-y-8 md:space-y-12 text-center flex flex-col items-center"
           >
@@ -162,7 +162,7 @@ const HeroBanner = () => {
 
         {/* Feature Grid - Re-balanced */}
         <motion.div 
-           initial={{ opacity: 0, x: -30 }}
+           initial={{ opacity: 0, x: -100 }}
            whileInView={{ opacity: 1, x: 0 }}
            viewport={{ once: true, margin: "-50px" }}
            transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
@@ -198,7 +198,7 @@ const HeroBanner = () => {
         </motion.div>
 
         <motion.div 
-           initial={{ opacity: 0, x: 30 }}
+           initial={{ opacity: 0, x: 100 }}
            whileInView={{ opacity: 1, x: 0 }}
            viewport={{ once: true, margin: "-50px" }}
            transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
