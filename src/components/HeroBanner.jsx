@@ -170,11 +170,21 @@ const HeroBanner = () => {
               </div>
               
               <div className="space-y-4">
-                 <h4 className="text-xl font-black text-white italic uppercase leading-none tracking-tight">
-                   Quantum Node Evolution
+                 <h4 
+                   contentEditable={editMode}
+                   onBlur={(e) => handleInlineEdit('spotlight_title', e.target.innerText)}
+                   suppressContentEditableWarning={true}
+                   className={`text-xl font-black italic uppercase leading-none tracking-tight outline-none transition-colors ${editMode ? 'bg-primary/5 rounded-xl p-3 ring-1 ring-primary/20 text-white block' : 'text-white'}`}
+                 >
+                   {settings.spotlight_title || 'Quantum Node Evolution'}
                  </h4>
-                 <p className="text-sm text-text-secondary leading-relaxed opacity-60">
-                   Deep dive into the decentralized architecture powering the future of the network.
+                 <p 
+                   contentEditable={editMode}
+                   onBlur={(e) => handleInlineEdit('spotlight_desc', e.target.innerText)}
+                   suppressContentEditableWarning={true}
+                   className={`text-sm leading-relaxed outline-none transition-colors ${editMode ? 'bg-primary/5 rounded-xl p-3 ring-1 ring-primary/20 text-text-secondary block' : 'text-text-secondary opacity-60'}`}
+                 >
+                   {settings.spotlight_desc || 'Deep dive into the decentralized architecture powering the future of the network.'}
                  </p>
                  <button className="w-full py-4 border-t border-white/5 text-[10px] font-black uppercase tracking-[0.3em] text-text-secondary hover:text-primary transition-colors">
                    View Documentation
