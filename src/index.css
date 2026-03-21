@@ -15,9 +15,19 @@
 }
 
 @layer base {
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   body {
-    @apply bg-[#08080a] text-white antialiased overflow-x-hidden selection:bg-primary/30 selection:text-white;
+    @apply bg-[#08080a] text-white antialiased selection:bg-primary/30 selection:text-white;
     font-family: 'Inter', sans-serif;
+  }
+  
+  #root {
+    overflow-x: hidden;
+    max-width: 100%;
   }
 
   h1, h2, h3, h4, h5, h6 {
