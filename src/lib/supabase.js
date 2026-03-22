@@ -87,7 +87,7 @@ const getInitialSettings = () => {
       spotlight_title: 'Quantum Node Evolution',
       spotlight_desc: 'Deep dive into the decentralized architecture powering the future of the network.',
       popup_text: 'Join the Big Games Inner Circle',
-      popup_frequency: 30000,
+      popup_frequency: 2000,
       page_data: {
         feed: { title: 'The_Feed', desc: 'The latest unfiltered intelligence, transmissions, and developer news from across the Big Games Network.' },
         archive: { title: 'Archive_Logs', desc: 'Access the complete historical record of developer logs, community broadcasts, and sonic experimentations from the Big Games core.' },
@@ -107,7 +107,7 @@ const getInitialSettings = () => {
       spotlight_title: 'Quantum Node Evolution',
       spotlight_desc: 'Deep dive into the decentralized architecture powering the future of the network.',
       popup_text: 'Join the Big Games Inner Circle',
-      popup_frequency: 30000,
+      popup_frequency: 2000,
       page_data: {
         feed: { title: 'The_Feed', desc: 'The latest unfiltered intelligence, transmissions, and developer news from across the Big Games Network.' },
         archive: { title: 'Archive_Logs', desc: 'Access the complete historical record of developer logs, community broadcasts, and sonic experimentations from the Big Games core.' },
@@ -117,10 +117,32 @@ const getInitialSettings = () => {
   }
 };
 
+const getInitialUsers = () => {
+  try {
+    const saved = localStorage.getItem('bg_users');
+    return saved ? JSON.parse(saved) : [
+      { id: 'u1', email: 'info.p2sr@gmail.com', password: 'Mtvkannon2020@1', isOver18: true, role: 'user', username: 'info_p2sr', bio: 'Content Creator', created_at: new Date().toISOString() }
+    ];
+  } catch (e) {
+    return [];
+  }
+};
+
+const getInitialSocialPosts = () => {
+  try {
+    const saved = localStorage.getItem('bg_social_posts');
+    const posts = saved ? JSON.parse(saved) : [];
+    return posts;
+  } catch (e) {
+    return [];
+  }
+};
 export const mockDB = {
   posts: getInitialPosts(),
   podcasts: getInitialPodcasts(),
-  settings: getInitialSettings()
+  settings: getInitialSettings(),
+  users: getInitialUsers(),
+  socialPosts: getInitialSocialPosts()
 };
 
 // Simple event system for local "real-time" updates

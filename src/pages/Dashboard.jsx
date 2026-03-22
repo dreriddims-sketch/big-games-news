@@ -1,6 +1,6 @@
 /* src/pages/Dashboard.jsx */
 import React from 'react';
-import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { 
   BarChart3, 
   PlusCircle, 
@@ -18,6 +18,7 @@ import Articles from './dashboard/Articles';
 import Rearrange from './dashboard/Rearrange';
 import PageSettings from './dashboard/PageSettings';
 import Popups from './dashboard/Popups';
+import UserModeration from './dashboard/UserModeration';
 import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
@@ -31,6 +32,7 @@ const Dashboard = () => {
     { label: 'Rearrange Tool', icon: <Move size={20} />, path: '/dashboard/rearrange' },
     { label: 'Page Editor', icon: <Layout size={20} />, path: '/dashboard/settings' },
     { label: 'Visitor Prompts', icon: <Bell size={20} />, path: '/dashboard/prompts' },
+    { label: 'User & Content Moderation', icon: <User size={20} />, path: '/dashboard/users' },
   ];
 
   const currentTab = menuItems.find(item => item.path === location.pathname) || menuItems[0];
@@ -105,6 +107,7 @@ const Dashboard = () => {
                 <Route path="rearrange" element={<Rearrange />} />
                 <Route path="settings" element={<PageSettings />} />
                 <Route path="prompts" element={<Popups />} />
+                <Route path="users" element={<UserModeration />} />
               </Routes>
            </div>
         </div>

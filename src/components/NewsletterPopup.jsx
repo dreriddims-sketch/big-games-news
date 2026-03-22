@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { X, Mail, Bell, Sparkles } from 'lucide-react';
+import { X, Mail, Bell, Sparkles, User } from 'lucide-react';
 import { mockDB, dbEvents, saveToMockSettings } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { sendWelcomeEmail } from '../lib/emailService';
 
 const NewsletterPopup = () => {
-  const { editMode } = useAuth();
+  const { editMode, user } = useAuth();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -19,12 +22,12 @@ const NewsletterPopup = () => {
     if (editMode) {
       setIsOpen(true);
     } else {
+      const cachedDelay = settings.popup_frequency;
+      const finalDelay = cachedDelay === 30000 ? 2000 : (cachedDelay || 2000);
+
       const timer = setTimeout(() => {
-        const shown = sessionStorage.getItem('newsletter_shown');
-        if (!shown) {
           setIsOpen(true);
-        }
-      }, settings.popup_frequency || 5000);
+      }, finalDelay);
 
       return () => {
         clearTimeout(timer);
@@ -47,14 +50,23 @@ const NewsletterPopup = () => {
     saveToMockSettings({ [field]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editMode) return; // Don't submit in edit mode
+    if (editMode) return; 
     setSubmitted(true);
+    
+    // Dispatch the custom Welcome Email
+    await sendWelcomeEmail(email);
+    
     setTimeout(closePopup, 3000);
   };
 
-  if (!isOpen) return null;
+  const handleSignUpClick = () => {
+     closePopup();
+     navigate('/signup');
+  };
+
+  if (!isOpen || user) return null; // never show if user is signed in
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-500">
@@ -113,6 +125,12 @@ const NewsletterPopup = () => {
               >
                 Sign Me Up <Sparkles size={18} />
               </button>
+              <div className="pt-4 border-t border-white/10 text-center space-y-4">
+                 <p className="text-xs text-white/50 uppercase font-black tracking-widest">OR CONNECT TO THE SOCIAL VAULT</p>
+                 <button type="button" onClick={handleSignUpClick} className="w-full py-4 uppercase font-black tracking-widest text-[#08080a] bg-white rounded-full flex items-center justify-center gap-3">
+                    Register Identity <User size={18} className="text-[#08080a]" />
+                 </button>
+              </div>
             </form>
           ) : (
             <div className="text-center py-6 animate-in zoom-in-95 duration-500 space-y-2">

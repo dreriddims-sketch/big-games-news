@@ -5,7 +5,7 @@ import { LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
-  const { isAdmin, logout, editMode, toggleEditMode } = useAuth();
+  const { isAdmin, user, logout, editMode, toggleEditMode } = useAuth();
   const location = useLocation();
   const isDashboard = location.pathname.startsWith('/dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -19,6 +19,7 @@ const Navbar = () => {
     { name: 'Feed', path: '/feed' },
     { name: 'Archive', path: '/archive' },
     { name: 'Signals', path: '/signals' },
+    ...(user ? [{ name: 'Social Vault', path: '/social' }] : [])
   ];
 
   return (
@@ -91,10 +92,21 @@ const Navbar = () => {
                 </button>
               )}
             </div>
+          ) : user ? (
+            <div className="flex items-center gap-6">
+               <Link to="/profile" className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/20 text-primary font-black uppercase border border-primary/30 shadow-[0_0_15px_rgba(255,153,0,0.2)] hover:scale-110 transition-transform">
+                 {(user.username || user.email || 'U').charAt(0)}
+               </Link>
+            </div>
           ) : (
-            <Link to="/login/pin" className="btn-primary py-3 px-8 text-[11px] uppercase font-black tracking-widest">
-              Admin Access
-            </Link>
+            <div className="flex items-center gap-4">
+               <Link to="/signup" className="btn-primary py-3 px-8 text-[11px] uppercase font-black tracking-widest hover:scale-105">
+                 Sign Up
+               </Link>
+               <Link to="/signin" className="px-6 text-[11px] uppercase font-black tracking-widest text-white/50 hover:text-white transition-colors">
+                 Login
+               </Link>
+            </div>
           )}
         </div>
       </div>
@@ -140,10 +152,17 @@ const Navbar = () => {
                 </button>
               )}
             </div>
+          ) : user ? (
+             <div className="flex flex-col items-center gap-6 w-full px-6">
+                <Link to="/profile" className="btn-primary w-full max-w-xs py-4 text-center text-[12px] uppercase font-black tracking-widest">My Profile</Link>
+             </div>
           ) : (
-            <Link to="/login/pin" className="btn-primary w-full max-w-xs py-4 text-center text-[12px] uppercase font-black tracking-widest">
-              Admin Access
-            </Link>
+            <div className="flex flex-col items-center gap-4 w-full">
+               <Link to="/signup" className="btn-primary w-full max-w-xs py-4 text-center text-[12px] uppercase font-black tracking-widest">
+                 Sign Up for Access
+               </Link>
+               <Link to="/signin" className="text-white/50 text-[11px] font-black uppercase tracking-widest">Login</Link>
+            </div>
           )}
         </div>
       )}

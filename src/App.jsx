@@ -11,6 +11,10 @@ import PinEntry from './pages/PinEntry';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Navbar from './components/Navbar';
+import SignUp from './pages/SignUp';
+import UserLogin from './pages/UserLogin';
+import SocialDashboard from './pages/SocialDashboard';
+import Profile from './pages/Profile';
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { pinVerified, isAdmin } = useAuth();
@@ -41,6 +45,10 @@ function AppRoutes() {
         <Route path="/article/:slug" element={<ArticlePage />} />
         <Route path="/login/pin" element={<PinEntry />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/signin" element={<UserLogin />} />
+        <Route path="/social" element={<SocialDashboard />} />
+        <Route path="/profile" element={<Profile />} />
         
         {/* Protected Dashboard Routes */}
         <Route 

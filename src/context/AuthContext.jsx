@@ -41,13 +41,55 @@ export const AuthProvider = ({ children }) => {
     return false;
   };
 
+  const signupUser = (email, password, isOver18) => {
+    if (!isOver18) return { success: false, message: 'You must be 18+ to sign up' };
+    
+    const savedUsers = JSON.parse(localStorage.getItem('bg_users') || '[]');
+    if (savedUsers.find(u => u.email === email)) {
+      return { success: false, message: 'User already exists' };
+    }
+    
+    const newUser = {
+      id: 'u' + Date.now(),
+      email,
+      password,
+      isOver18,
+      role: 'user',
+      username: email.split('@')[0],
+      bio: '',
+      created_at: new Date().toISOString()
+    };
+    
+    savedUsers.push(newUser);
+    localStorage.setItem('bg_users', JSON.stringify(savedUsers));
+    
+    setUser(newUser);
+    return { success: true };
+  };
+
   const login = (email, password) => {
-    // Stage 2 verification
+    // Stage 2 verification (admin)
     if (email === 'dreriddims@gmail.com' && password === 'Mtvkannon2020@1') {
       setIsAdmin(true);
       setUser({ email: 'dreriddims@gmail.com', role: 'admin' });
       return true;
     }
+    
+    // Check normal users
+    const savedUsers = JSON.parse(localStorage.getItem('bg_users') || '[]');
+    // hardcoded initial fallback check if localstorage empty
+    if (email === 'info.p2sr@gmail.com' && password === 'Mtvkannon2020@1' && savedUsers.length === 0) {
+      const initUser = { id: 'u1', email: 'info.p2sr@gmail.com', password: 'Mtvkannon2020@1', isOver18: true, role: 'user', username: 'info_p2sr', bio: 'Content Creator' };
+      savedUsers.push(initUser);
+      localStorage.setItem('bg_users', JSON.stringify(savedUsers));
+    }
+
+    const foundUser = savedUsers.find(u => u.email === email && u.password === password);
+    if (foundUser) {
+       setUser(foundUser);
+       return true;
+    }
+    
     return false;
   };
 
@@ -80,6 +122,7 @@ export const AuthProvider = ({ children }) => {
       editMode: editMode && isAdmin, 
       toggleEditMode,
       verifyPin, 
+      signupUser,
       login, 
       logout 
     }}>
