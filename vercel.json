@@ -20,6 +20,7 @@
     }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/((?!api/|assets/|favicon.svg|logo.png|brand-banner.png|hero.png|nav-logo.png|.*\\..*).*)", "destination": "/index.html" }
   ]
 }
