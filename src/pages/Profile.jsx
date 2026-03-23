@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchSocialPosts, deletePost, updateSocialPost } from '../lib/supabase';
-import { Video, Heart, LogOut, ShieldAlert, Trash2, Edit2, Check, X as Close } from 'lucide-react';
+import { Video, Heart, LogOut, ShieldAlert, Trash2, Edit2, Check, X as Close, Upload } from 'lucide-react';
+import UploadModal from '../components/UploadModal';
 
 const Profile = () => {
    const { user, logout } = useAuth();
    const [myPosts, setMyPosts] = useState([]);
    const [editingId, setEditingId] = useState(null);
    const [editValue, setEditValue] = useState('');
+   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
    useEffect(() => {
      const getPosts = async () => {
@@ -59,7 +61,13 @@ const Profile = () => {
                </div>
             </div>
             <div className="mt-6 md:mt-0 flex flex-col gap-4 w-full md:w-auto">
-               <button onClick={logout} className="btn-secondary flex items-center justify-center gap-3 py-4 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20">
+               <button 
+                 onClick={() => setIsUploadOpen(true)}
+                 className="btn-primary flex items-center justify-center gap-3 py-4 bg-primary text-black font-black uppercase tracking-widest text-xs"
+               >
+                 <Upload size={16} /> Upload Transmission
+               </button>
+               <button onClick={logout} className="btn-secondary flex items-center justify-center gap-3 py-4 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 text-xs font-black uppercase tracking-widest">
                  <LogOut size={16} /> Sign Out
                </button>
             </div>
@@ -145,6 +153,13 @@ const Profile = () => {
                )}
             </div>
          </div>
+         
+         <UploadModal 
+           isOpen={isUploadOpen} 
+           onClose={() => setIsUploadOpen(false)} 
+           user={user} 
+           onUploadSuccess={(newPost) => setMyPosts([newPost, ...myPosts])}
+         />
       </div>
    );
 };
