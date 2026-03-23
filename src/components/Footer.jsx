@@ -97,7 +97,7 @@ const Footer = () => {
          <div className="flex items-center gap-8">
             <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
             <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
-            <span className="text-primary">Status: OPTIMIZED</span>
+            <span className="text-primary">Status: OPTIMIZED-PWA-V3</span>
          </div>
       </div>
     </footer>
