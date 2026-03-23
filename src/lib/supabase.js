@@ -122,6 +122,24 @@ export const updatePostStatus = async (id, status, aiScore = null) => {
 };
 
 /**
+ * Update a post/video's metadata (description/tab).
+ */
+export const updateSocialPost = async (id, updates) => {
+  if (!isSupabaseConfigured) {
+    const lsPosts = JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
+    const updated = lsPosts.map(p => p.id === id ? { ...p, ...updates } : p);
+    localStorage.setItem('bg_social_posts', JSON.stringify(updated));
+    return { data: updated, error: null };
+  }
+  const { data, error } = await supabase
+    .from('social_posts')
+    .update(updates)
+    .eq('id', id);
+  if (error) console.error('[DB] updateSocialPost error:', error.message);
+  return { data, error };
+};
+
+/**
  * Delete a social post permanently.
  */
 export const deletePost = async (id) => {

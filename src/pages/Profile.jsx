@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchSocialPosts, deletePost } from '../lib/supabase';
-import { Video, Heart, LogOut, ShieldAlert, Trash2 } from 'lucide-react';
+import { fetchSocialPosts, deletePost, updateSocialPost } from '../lib/supabase';
+import { Video, Heart, LogOut, ShieldAlert, Trash2, Edit2, Check, X as Close } from 'lucide-react';
 
 const Profile = () => {
    const { user, logout } = useAuth();
    const [myPosts, setMyPosts] = useState([]);
+   const [editingId, setEditingId] = useState(null);
+   const [editValue, setEditValue] = useState('');
 
    useEffect(() => {
      const getPosts = async () => {
@@ -84,24 +86,49 @@ const Profile = () => {
                        
                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-4">
                           <div className="flex justify-between items-end gap-2">
-                             <p className="text-[10px] text-white/80 line-clamp-2 font-medium flex-1">{post.description}</p>
+                             {editingId === post.id ? (
+                               <div className="flex-1 flex gap-2">
+                                 <input 
+                                   autoFocus
+                                   className="bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-[10px] text-white outline-none w-full"
+                                   value={editValue}
+                                   onChange={(e) => setEditValue(e.target.value)}
+                                   onKeyDown={async (e) => {
+                                     if (e.key === 'Enter') {
+                                       await updateSocialPost(post.id, { description: editValue });
+                                       setMyPosts(prev => prev.map(p => p.id === post.id ? { ...p, description: editValue } : p));
+                                       setEditingId(null);
+                                     }
+                                   }}
+                                 />
+                               </div>
+                             ) : (
+                               <p className="text-[10px] text-white/80 line-clamp-2 font-medium flex-1">{post.description}</p>
+                             )}
                              <div className="flex items-center gap-1 text-primary text-[10px] font-black"><Heart size={12} /> {post.likes || 0}</div>
                           </div>
                           
                           {/* OVERLAY CONTROLS - ALWAYS VISIBLE ON MOBILE, HOVER ON DESKTOP */}
                           <div className="absolute top-3 right-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity flex flex-col gap-2">
                             <button 
+                              onClick={() => {
+                                setEditingId(editingId === post.id ? null : post.id);
+                                setEditValue(post.description);
+                              }}
+                              className="p-3 glass rounded-full text-white hover:bg-white/10 border border-white/10"
+                              title="Edit Transcription"
+                            >
+                              {editingId === post.id ? <Check size={16} className="text-emerald-400" /> : <Edit2 size={16} />}
+                            </button>
+                            <button 
                               onClick={async (e) => {
                                 e.stopPropagation();
-                                if (window.confirm('Are you sure you want to permanently delete this video?')) {
-                                  const { error } = await deletePost(post.id);
-                                  if (!error) {
-                                    setMyPosts(prev => prev.filter(p => p.id !== post.id));
-                                  }
+                                if (window.confirm('Delete this video?')) {
+                                  await deletePost(post.id);
+                                  setMyPosts(prev => prev.filter(p => p.id !== post.id));
                                 }
                               }}
                               className="p-3 bg-red-500/80 md:bg-red-500 text-white rounded-full shadow-2xl hover:bg-red-600 transition-all border border-red-400/20"
-                              title="Delete Transmission"
                             >
                               <Trash2 size={16} />
                             </button>
