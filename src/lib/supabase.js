@@ -151,13 +151,21 @@ export const notifyChange = () => dbEvents.dispatchEvent(new Event('change'));
 
 export const saveToMockSettings = (newSettings) => {
   mockDB.settings = { ...mockDB.settings, ...newSettings };
-  localStorage.setItem('bg_settings', JSON.stringify(mockDB.settings));
+  try {
+    localStorage.setItem('bg_settings', JSON.stringify(mockDB.settings));
+  } catch(e) {
+    console.warn('Storage quota exceeded, changes saved to memory only');
+  }
   notifyChange();
 };
 
 export const saveToMockPosts = (newPosts) => {
   mockDB.posts = newPosts;
-  localStorage.setItem('bg_posts', JSON.stringify(mockDB.posts));
+  try {
+    localStorage.setItem('bg_posts', JSON.stringify(mockDB.posts));
+  } catch(e) {
+    console.warn('Storage quota exceeded, changes saved to memory only');
+  }
   notifyChange();
 };
 
@@ -165,6 +173,26 @@ export const saveToMockPodcasts = (newPodcasts) => {
   mockDB.podcasts = newPodcasts;
   try {
     localStorage.setItem('bg_podcasts', JSON.stringify(mockDB.podcasts));
+  } catch(e) {
+    console.warn('Storage quota exceeded, changes saved to memory only');
+  }
+  notifyChange();
+};
+
+export const saveToMockUsers = (newUsers) => {
+  mockDB.users = newUsers;
+  try {
+    localStorage.setItem('bg_users', JSON.stringify(mockDB.users));
+  } catch(e) {
+    console.warn('Storage quota exceeded, changes saved to memory only');
+  }
+  notifyChange();
+};
+
+export const saveToMockSocialPosts = (newSocialPosts) => {
+  mockDB.socialPosts = newSocialPosts;
+  try {
+    localStorage.setItem('bg_social_posts', JSON.stringify(mockDB.socialPosts));
   } catch(e) {
     console.warn('Storage quota exceeded, changes saved to memory only');
   }

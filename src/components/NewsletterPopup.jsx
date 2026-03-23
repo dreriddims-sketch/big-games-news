@@ -23,7 +23,7 @@ const NewsletterPopup = () => {
       setIsOpen(true);
     } else {
       const cachedDelay = settings.popup_frequency;
-      const finalDelay = cachedDelay === 30000 ? 2000 : (cachedDelay || 2000);
+      const finalDelay = 0;
 
       const timer = setTimeout(() => {
           setIsOpen(true);
@@ -40,9 +40,7 @@ const NewsletterPopup = () => {
 
   const closePopup = () => {
     setIsOpen(false);
-    if (!editMode) {
-      sessionStorage.setItem('newsletter_shown', 'true');
-    }
+    // Removed session storage check so it reappears on refresh as requested
   };
 
   const handleInlineEdit = (field, value) => {
@@ -52,10 +50,9 @@ const NewsletterPopup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editMode) return; 
     setSubmitted(true);
     
-    // Dispatch the custom Welcome Email
+    // Dispatch the custom Welcome Email (now works in Edit Mode too for testing)
     await sendWelcomeEmail(email);
     
     setTimeout(closePopup, 3000);
@@ -66,7 +63,7 @@ const NewsletterPopup = () => {
      navigate('/signup');
   };
 
-  if (!isOpen || user) return null; // never show if user is signed in
+  if (!isOpen || (user && !editMode)) return null; // never show if user is signed in, unless editing
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-500">
