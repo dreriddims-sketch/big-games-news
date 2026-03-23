@@ -1,7 +1,7 @@
 /* src/pages/ForYouPage.jsx - Public-facing For You feed */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Share2, Gift, Play, Zap, UserPlus, MessageCircle, X, Volume2, VolumeX } from 'lucide-react';
+import { Heart, Share2, Gift, Play, Zap, UserPlus, MessageCircle, X, Volume2, VolumeX, Eye, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { fetchSocialPosts, fetchArticles, incrementViews } from '../lib/supabase';
@@ -286,6 +286,10 @@ const ArticlePost = React.memo(({ post, onTagClick }) => {
             >
               <Share2 size={22} className="group-hover:scale-110 transition-transform" />
             </button>
+            <div className="flex items-center gap-2 px-6 py-4 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-3xl shadow-2xl">
+              <Eye size={18} className="text-primary" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/40 italic">{post.views || 0} READS</span>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -296,11 +300,7 @@ const ArticlePost = React.memo(({ post, onTagClick }) => {
   );
 });
 
-const ArrowRight = ({ size, className }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M5 12h14M12 5l7 7-7 7"/>
-  </svg>
-);
+
 
 const ForYouPage = () => {
   const { user, isPostLiked, toggleLike } = useAuth();
