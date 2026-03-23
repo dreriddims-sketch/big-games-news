@@ -3,6 +3,16 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
+const STARTER_CREDITS = 150;
+
+// Helper: get credits store
+const getCreditsStore = () => JSON.parse(localStorage.getItem('bg_credits') || '{}');
+const saveCreditsStore = (store) => localStorage.setItem('bg_credits', JSON.stringify(store));
+
+// Helper: get likes store
+const getLikesStore = () => JSON.parse(localStorage.getItem('bg_likes') || '{}');
+const saveLikesStore = (store) => localStorage.setItem('bg_likes', JSON.stringify(store));
+
 export const AuthProvider = ({ children }) => {
   const [pinVerified, setPinVerified] = useState(() => {
     return localStorage.getItem('bg_pin_verified') === 'true';
@@ -16,6 +26,8 @@ export const AuthProvider = ({ children }) => {
     const savedUser = localStorage.getItem('bg_admin_user');
     return savedUser ? JSON.parse(savedUser) : null;
   });
+
+  const [showLowCreditAlert, setShowLowCreditAlert] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('bg_pin_verified', pinVerified);
@@ -33,6 +45,93 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
+  // ────────── CREDITS ──────────
+  const getUserCredits = (userId) => {
+    if (!userId) return 0;
+    const store = getCreditsStore();
+    return store[userId] ?? STARTER_CREDITS;
+  };
+
+  const currentCredits = user ? getUserCredits(user.id) : 0;
+
+  const addCredits = (amount, targetUserId) => {
+    const uid = targetUserId || user?.id;
+    if (!uid) return;
+    const store = getCreditsStore();
+    const prev = store[uid] ?? STARTER_CREDITS;
+    store[uid] = prev + amount;
+    saveCreditsStore(store);
+    if (uid === user?.id) {
+      // force re-render via a dummy state update
+      setUser(u => ({ ...u }));
+    }
+  };
+
+  const spendCredits = (amount) => {
+    if (!user?.id) return false;
+    const store = getCreditsStore();
+    const prev = store[user.id] ?? STARTER_CREDITS;
+    if (prev < amount) {
+      setShowLowCreditAlert(true);
+      return false;
+    }
+    store[user.id] = prev - amount;
+    saveCreditsStore(store);
+    // warn if now low
+    if (store[user.id] < 50) {
+      setShowLowCreditAlert(true);
+    }
+    setUser(u => ({ ...u }));
+    return true;
+  };
+
+  const dismissLowCreditAlert = () => setShowLowCreditAlert(false);
+
+  // ────────── LIKES ──────────
+  const getLikedPosts = () => {
+    if (!user?.id) return {};
+    const store = getLikesStore();
+    return store[user.id] || {};
+  };
+
+  const toggleLike = (postId) => {
+    if (!user?.id) return false;
+    const store = getLikesStore();
+    const userLikes = store[user.id] || {};
+    if (userLikes[postId]) {
+      delete userLikes[postId];
+    } else {
+      userLikes[postId] = true;
+    }
+    store[user.id] = userLikes;
+    saveLikesStore(store);
+    return userLikes[postId] === true;
+  };
+
+  const isPostLiked = (postId) => {
+    if (!user?.id) return false;
+    const store = getLikesStore();
+    return !!(store[user.id]?.[postId]);
+  };
+
+  // ────────── ALL USERS (for admin) ──────────
+  const getAllUsers = () => {
+    const savedUsers = JSON.parse(localStorage.getItem('bg_users') || '[]');
+    const store = getCreditsStore();
+    return savedUsers.map(u => ({
+      ...u,
+      credits: store[u.id] ?? STARTER_CREDITS
+    }));
+  };
+
+  const setUserCreditsAdmin = (userId, amount) => {
+    const store = getCreditsStore();
+    store[userId] = amount;
+    saveCreditsStore(store);
+    if (userId === user?.id) setUser(u => ({ ...u }));
+  };
+
+  // ────────── AUTH ──────────
   const verifyPin = (pin) => {
     if (pin === '1990') {
       setPinVerified(true);
@@ -57,11 +156,17 @@ export const AuthProvider = ({ children }) => {
       role: 'user',
       username: email.split('@')[0],
       bio: '',
+      credits: STARTER_CREDITS,
       created_at: new Date().toISOString()
     };
     
     savedUsers.push(newUser);
     localStorage.setItem('bg_users', JSON.stringify(savedUsers));
+
+    // Give starter credits
+    const store = getCreditsStore();
+    store[newUser.id] = STARTER_CREDITS;
+    saveCreditsStore(store);
     
     setUser(newUser);
     return { success: true };
@@ -73,6 +178,9 @@ export const AuthProvider = ({ children }) => {
       const adminUser = { id: 'admin-1', email: 'dreriddims@gmail.com', role: 'admin', username: 'dreriddims' };
       setIsAdmin(true);
       setUser(adminUser);
+      // Give admin unlimited credits if not set
+      const store = getCreditsStore();
+      if (!store['admin-1']) { store['admin-1'] = 9999; saveCreditsStore(store); }
       return true;
     }
     
@@ -83,10 +191,19 @@ export const AuthProvider = ({ children }) => {
       const initUser = { id: 'u-info-p2sr', email: 'info.p2sr@gmail.com', password: 'Mtvkannon2020@1', isOver18: true, role: 'user', username: 'info_p2sr', bio: 'Content Creator' };
       savedUsers.push(initUser);
       localStorage.setItem('bg_users', JSON.stringify(savedUsers));
+      // Give starter credits
+      const store = getCreditsStore();
+      if (!store['u-info-p2sr']) { store['u-info-p2sr'] = STARTER_CREDITS; saveCreditsStore(store); }
     }
 
     const foundUser = savedUsers.find(u => u.email === email && u.password === password);
     if (foundUser) {
+       // Ensure starter credits on first login
+       const store = getCreditsStore();
+       if (store[foundUser.id] === undefined) {
+         store[foundUser.id] = STARTER_CREDITS;
+         saveCreditsStore(store);
+       }
        setUser(foundUser);
        return true;
     }
@@ -103,6 +220,19 @@ export const AuthProvider = ({ children }) => {
   }, [editMode, isAdmin]);
 
   const toggleEditMode = () => setEditMode(prev => !prev);
+
+  const updateUser = (updatedData) => {
+    if (!user) return false;
+    const updatedUser = { ...user, ...updatedData };
+    setUser(updatedUser);
+    const savedUsers = JSON.parse(localStorage.getItem('bg_users') || '[]');
+    const index = savedUsers.findIndex(u => u.id === user.id);
+    if (index !== -1) {
+      savedUsers[index] = updatedUser;
+      localStorage.setItem('bg_users', JSON.stringify(savedUsers));
+    }
+    return true;
+  };
 
   const logout = () => {
     setIsAdmin(false);
@@ -125,7 +255,22 @@ export const AuthProvider = ({ children }) => {
       verifyPin, 
       signupUser,
       login, 
-      logout 
+      logout,
+      updateUser,
+      // Credits
+      currentCredits,
+      getUserCredits,
+      addCredits,
+      spendCredits,
+      showLowCreditAlert,
+      dismissLowCreditAlert,
+      getAllUsers,
+      setUserCreditsAdmin,
+      STARTER_CREDITS,
+      // Likes
+      toggleLike,
+      isPostLiked,
+      getLikedPosts,
     }}>
       {children}
     </AuthContext.Provider>

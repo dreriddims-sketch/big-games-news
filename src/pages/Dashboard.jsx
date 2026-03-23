@@ -10,7 +10,8 @@ import {
   Bell, 
   ChevronRight,
   LogOut,
-  User
+  User,
+  Zap
 } from 'lucide-react';
 import Stats from './dashboard/Stats';
 import Publish from './dashboard/Publish';
@@ -19,6 +20,7 @@ import Rearrange from './dashboard/Rearrange';
 import PageSettings from './dashboard/PageSettings';
 import Popups from './dashboard/Popups';
 import UserModeration from './dashboard/UserModeration';
+import Credits from './dashboard/Credits';
 import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
@@ -33,6 +35,7 @@ const Dashboard = () => {
     { label: 'Page Editor', icon: <Layout size={20} />, path: '/dashboard/settings' },
     { label: 'Visitor Prompts', icon: <Bell size={20} />, path: '/dashboard/prompts' },
     { label: 'User & Content Moderation', icon: <User size={20} />, path: '/dashboard/users' },
+    { label: 'Credits & Revenue', icon: <Zap size={20} />, path: '/dashboard/credits' },
   ];
 
   const currentTab = menuItems.find(item => item.path === location.pathname) || menuItems[0];
@@ -108,6 +111,7 @@ const Dashboard = () => {
                 <Route path="settings" element={<PageSettings />} />
                 <Route path="prompts" element={<Popups />} />
                 <Route path="users" element={<UserModeration />} />
+                <Route path="credits" element={<Credits />} />
               </Routes>
            </div>
         </div>

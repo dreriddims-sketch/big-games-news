@@ -1,24 +1,24 @@
 /* src/components/Navbar.jsx */
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, X, Zap, Target } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
-  const { isAdmin, user, logout, editMode, toggleEditMode } = useAuth();
+  const { isAdmin, user, logout, editMode, toggleEditMode, currentCredits } = useAuth();
   const location = useLocation();
   const isDashboard = location.pathname.startsWith('/dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
   const navLinks = [
-    { name: 'Feed', path: '/feed' },
-    { name: 'Archive', path: '/archive' },
-    { name: 'Signals', path: '/signals' },
+    { name: 'For You', path: '/foryou', public: true },
+    { name: 'Feed', path: '/feed', public: true },
+    { name: 'Archive', path: '/archive', public: true },
+    { name: 'Signals', path: '/signals', public: true },
     ...(user ? [{ name: 'Social Vault', path: '/social' }] : [])
   ];
 
@@ -56,9 +56,20 @@ const Navbar = () => {
         </button>
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-10">
+        <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <Link key={link.name} to={link.path} className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40 hover:text-white transition-all">
+            <Link
+              key={link.name}
+              to={link.path}
+              className={`text-[11px] font-black uppercase tracking-[0.3em] transition-all ${
+                location.pathname === link.path
+                  ? 'text-primary'
+                  : link.name === 'For You'
+                  ? 'text-white/70 hover:text-primary'
+                  : 'text-white/40 hover:text-white'
+              } ${link.name === 'For You' ? 'flex items-center gap-1.5' : ''}`}
+            >
+              {link.name === 'For You' && <Target size={12} />}
               {link.name}
             </Link>
           ))}
@@ -66,7 +77,7 @@ const Navbar = () => {
           {isAdmin && !isDashboard && (
             <div className="flex items-center gap-4 px-6 py-2 bg-white/5 rounded-full border border-white/5">
               <span className={`text-[10px] font-black uppercase tracking-widest ${editMode ? 'text-primary' : 'text-white/30'}`}>
-                {editMode ? 'Edit Mode On' : 'Edit Mode Off'}
+                {editMode ? 'Edit On' : 'Edit Off'}
               </span>
               <button 
                 onClick={toggleEditMode}
@@ -93,7 +104,12 @@ const Navbar = () => {
               )}
             </div>
           ) : user ? (
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
+               {/* Credits pill */}
+               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full">
+                 <Zap size={11} className="text-primary" />
+                 <span className="text-[10px] font-black text-primary">{currentCredits} CR</span>
+               </div>
                <Link to="/profile" className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/20 text-primary font-black uppercase border border-primary/30 shadow-[0_0_15px_rgba(255,153,0,0.2)] hover:scale-110 transition-transform">
                  {(user.username || user.email || 'U').charAt(0)}
                </Link>
@@ -101,7 +117,7 @@ const Navbar = () => {
           ) : (
             <div className="flex items-center gap-4">
                <Link to="/signup" className="btn-primary py-3 px-8 text-[11px] uppercase font-black tracking-widest hover:scale-105">
-                 Sign Up
+                 Sign Up Free
                </Link>
                <Link to="/signin" className="px-6 text-[11px] uppercase font-black tracking-widest text-white/50 hover:text-white transition-colors">
                  Login
@@ -115,12 +131,29 @@ const Navbar = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-black/95 backdrop-blur-3xl border-b border-white/10 flex flex-col items-center py-8 gap-6 shadow-2xl">
           {navLinks.map((link) => (
-            <Link key={link.name} to={link.path} className="text-[14px] font-black uppercase tracking-[0.3em] text-white/70 hover:text-white transition-all">
+            <Link
+              key={link.name}
+              to={link.path}
+              className={`flex items-center gap-2 text-[14px] font-black uppercase tracking-[0.3em] transition-all ${
+                link.name === 'For You'
+                  ? 'text-primary'
+                  : 'text-white/70 hover:text-white'
+              }`}
+            >
+              {link.name === 'For You' && <Target size={14} />}
               {link.name}
             </Link>
           ))}
           
           <div className="w-1/2 h-px bg-white/10 my-2" />
+
+          {/* Credits display on mobile */}
+          {user && (
+            <div className="flex items-center gap-2 px-5 py-2.5 bg-primary/10 border border-primary/20 rounded-full">
+              <Zap size={14} className="text-primary" />
+              <span className="text-sm font-black text-primary">{currentCredits} Credits</span>
+            </div>
+          )}
 
           {isAdmin ? (
             <div className="flex flex-col items-center gap-6 w-full px-6">
@@ -157,9 +190,9 @@ const Navbar = () => {
                 <Link to="/profile" className="btn-primary w-full max-w-xs py-4 text-center text-[12px] uppercase font-black tracking-widest">My Profile</Link>
              </div>
           ) : (
-            <div className="flex flex-col items-center gap-4 w-full">
+            <div className="flex flex-col items-center gap-4 w-full px-6">
                <Link to="/signup" className="btn-primary w-full max-w-xs py-4 text-center text-[12px] uppercase font-black tracking-widest">
-                 Sign Up for Access
+                 Join Free — Get 150 Credits
                </Link>
                <Link to="/signin" className="text-white/50 text-[11px] font-black uppercase tracking-widest">Login</Link>
             </div>

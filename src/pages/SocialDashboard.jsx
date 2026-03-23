@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { 
   Heart, MessageCircle, Share2, Target, Users, Globe, Building2, 
-  Upload, Clock, Trash2, Video, Zap
+  Upload, Clock, Trash2, Video, Zap, Gift, X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fetchSocialPosts, deletePost } from '../lib/supabase';
@@ -16,11 +16,59 @@ const TABS = [
   { id: 'biggames', label: 'Big Games', icon: Building2 }
 ];
 
+const GIFT_OPTIONS = [
+  { id: 1, name: 'Crystal Heart', cost: 50, emoji: '💎' },
+  { id: 2, name: 'Digital Coin', cost: 100, emoji: '🪙' },
+  { id: 3, name: 'Power Bolt', cost: 250, emoji: '⚡' },
+  { id: 4, name: 'Golden Star', cost: 500, emoji: '⭐' },
+];
+
+const GiftOverlay = ({ onClose, onGift, currentCredits }) => {
+  const [sent, setSent] = useState(null);
+  const handleGift = (gift) => {
+    const ok = onGift(gift);
+    if (ok) {
+      setSent(gift);
+      setTimeout(() => { setSent(null); onClose(); }, 1500);
+    }
+  };
+  return (
+    <div className="absolute inset-0 z-40 bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 gap-4 rounded-[3rem]">
+      {sent ? (
+        <div className="text-center animate-in zoom-in space-y-3">
+          <div className="text-6xl">{sent.emoji}</div>
+          <p className="text-white font-black uppercase tracking-widest">{sent.name} Sent!</p>
+        </div>
+      ) : (
+        <>
+          <button onClick={onClose} className="absolute top-6 right-6 p-2 text-white/30 hover:text-white"><X size={20} /></button>
+          <p className="text-[10px] text-primary font-black uppercase tracking-widest">Your Credits: {currentCredits} CR</p>
+          <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
+            {GIFT_OPTIONS.map(gift => (
+              <button
+                key={gift.id}
+                onClick={() => handleGift(gift)}
+                className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-primary/40 hover:bg-primary/5 transition-all group"
+              >
+                <span className="text-3xl group-hover:scale-110 transition-transform">{gift.emoji}</span>
+                <p className="text-[9px] font-black uppercase text-white/40">{gift.name}</p>
+                <p className="text-xs font-black text-white">{gift.cost} CR</p>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 const SocialDashboard = () => {
-  const { user } = useAuth();
+  const { user, isPostLiked, toggleLike, spendCredits, currentCredits } = useAuth();
   const [activeTab, setActiveTab] = useState('foryou');
   const [posts, setPosts] = useState([]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [giftingPostId, setGiftingPostId] = useState(null);
+  const [likeCounts, setLikeCounts] = useState({});
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -32,9 +80,37 @@ const SocialDashboard = () => {
         fileName: p.fileName || p.file_name,
       }));
       setPosts(normalised);
+      // Init like counts
+      const counts = {};
+      normalised.forEach(p => { counts[p.id] = p.likes || 0; });
+      const bumps = JSON.parse(localStorage.getItem('bg_like_bumps') || '{}');
+      Object.keys(bumps).forEach(id => {
+        if (counts[id] !== undefined) counts[id] = counts[id] + bumps[id];
+      });
+      setLikeCounts(counts);
     };
     loadPosts();
   }, [user]);
+
+  const handleLike = (postId) => {
+    const wasLiked = isPostLiked(postId);
+    toggleLike(postId);
+    const bumps = JSON.parse(localStorage.getItem('bg_like_bumps') || '{}');
+    if (wasLiked) {
+      bumps[postId] = Math.max(0, (bumps[postId] || 1) - 1);
+    } else {
+      bumps[postId] = (bumps[postId] || 0) + 1;
+    }
+    localStorage.setItem('bg_like_bumps', JSON.stringify(bumps));
+    setLikeCounts(prev => ({
+      ...prev,
+      [postId]: Math.max(0, (prev[postId] || 0) + (wasLiked ? -1 : 1))
+    }));
+  };
+
+  const handleGift = (gift) => {
+    return spendCredits(gift.cost);
+  };
 
   if (!user) return <Navigate to="/signin" replace />;
 
@@ -58,6 +134,14 @@ const SocialDashboard = () => {
             </button>
           );
         })}
+        {/* Credits display in sidebar */}
+        <div className="mt-auto p-4 bg-primary/5 border border-primary/20 rounded-2xl flex items-center gap-3">
+          <Zap size={16} className="text-primary shrink-0" />
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-widest text-white/30">Your Credits</p>
+            <p className="font-black text-primary text-lg">{currentCredits} CR</p>
+          </div>
+        </div>
       </div>
 
       {/* Main Container */}
@@ -75,15 +159,18 @@ const SocialDashboard = () => {
               </button>
             ))}
           </div>
-          <button onClick={() => setIsUploadModalOpen(true)} className="p-2.5 bg-primary text-black rounded-full shadow-lg">
-            <Upload size={16} />
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-black text-primary">{currentCredits} CR</span>
+            <button onClick={() => setIsUploadModalOpen(true)} className="p-2.5 bg-primary text-black rounded-full shadow-lg">
+              <Upload size={16} />
+            </button>
+          </div>
         </div>
 
         {/* Global Feed Content */}
         <div className="flex-1 overflow-y-scroll snap-y snap-mandatory relative z-10 no-scrollbar p-0">
           
-          {/* USER'S OWN PENDING SECTION INSIDE FEED AS A SPECIAL CARD */}
+          {/* USER'S OWN PENDING SECTION */}
           {posts.filter(p => p.userId === user?.id && p.status === 'pending').length > 0 && (
             <div className="snap-start min-h-screen flex items-center justify-center p-4 md:p-8">
               <div className="glass rounded-[2.5rem] p-8 md:p-12 border-white/10 max-w-4xl w-full">
@@ -149,9 +236,18 @@ const SocialDashboard = () => {
                     <video src={post.videoUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                   )}
                   
+                  {/* Gift overlay */}
+                  {giftingPostId === post.id && (
+                    <GiftOverlay
+                      onClose={() => setGiftingPostId(null)}
+                      onGift={handleGift}
+                      currentCredits={currentCredits}
+                    />
+                  )}
+
                   {/* Overlay UI */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-black/40 flex flex-col justify-between p-6 md:p-8">
-                    <div className="flex justify-between items-start pt-4">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-black/40 flex flex-col justify-between p-6 md:p-8 pointer-events-none">
+                    <div className="flex justify-between items-start pt-4 pointer-events-none">
                       <div className="flex items-center gap-2">
                         <Zap size={14} className="text-primary animate-pulse" />
                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">Verified Transmission</span>
@@ -159,7 +255,7 @@ const SocialDashboard = () => {
                     </div>
 
                     <div className="flex justify-between items-end">
-                      <div className="space-y-4 max-w-[80%] pb-4">
+                      <div className="space-y-4 max-w-[75%] pb-4 pointer-events-none">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-black uppercase border border-primary/20 shadow-lg">
                             {(post.username || 'U').charAt(0)}
@@ -176,24 +272,39 @@ const SocialDashboard = () => {
                         <p className="text-sm font-medium text-white/90 drop-shadow-lg leading-relaxed">{post.description}</p>
                       </div>
 
-                      <div className="flex flex-col gap-6 items-center pb-8">
-                        <div className="flex flex-col items-center gap-1 group cursor-pointer">
-                          <div className="p-4 rounded-full bg-black/60 backdrop-blur-xl group-hover:bg-primary/20 transition-all text-white border border-white/10 group-active:scale-95 shadow-2xl">
-                            <Heart size={24} className="group-hover:text-primary transition-colors" />
+                      {/* Action buttons */}
+                      <div className="flex flex-col gap-5 items-center pb-8 pointer-events-auto">
+                        {/* Like */}
+                        <button
+                          onClick={() => handleLike(post.id)}
+                          className="flex flex-col items-center gap-1 group"
+                        >
+                          <div className={`p-4 rounded-full backdrop-blur-xl transition-all group-active:scale-95 shadow-2xl ${isPostLiked(post.id) ? 'bg-red-500/20 border border-red-500/40' : 'bg-black/60 border border-white/10 group-hover:bg-primary/20'}`}>
+                            <Heart size={24} className={`transition-colors ${isPostLiked(post.id) ? 'text-red-400 fill-red-400' : 'text-white group-hover:text-primary'}`} />
                           </div>
-                          <span className="text-[10px] font-black text-white tracking-widest">{post.likes || 0}</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-1 group cursor-pointer">
+                          <span className="text-[10px] font-black text-white tracking-widest">{likeCounts[post.id] || 0}</span>
+                        </button>
+
+                        {/* Gift */}
+                        <button
+                          onClick={() => setGiftingPostId(giftingPostId === post.id ? null : post.id)}
+                          className="flex flex-col items-center gap-1 group"
+                        >
                           <div className="p-4 rounded-full bg-black/60 backdrop-blur-xl group-hover:bg-primary/20 transition-all text-white border border-white/10 group-active:scale-95 shadow-2xl">
-                            <MessageCircle size={24} />
+                            <Gift size={24} className="group-hover:text-primary transition-colors" />
                           </div>
-                          <span className="text-[10px] font-black text-white tracking-widest">{post.comments || 0}</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-1 group cursor-pointer">
+                          <span className="text-[10px] font-black text-white/60">Gift</span>
+                        </button>
+
+                        {/* Share */}
+                        <button
+                          onClick={() => navigator.share?.({ url: window.location.href }) || navigator.clipboard?.writeText(window.location.href)}
+                          className="flex flex-col items-center gap-1 group"
+                        >
                           <div className="p-4 rounded-full bg-black/60 backdrop-blur-xl group-hover:bg-primary/20 transition-all text-white border border-white/10 group-active:scale-95 shadow-2xl">
                             <Share2 size={24} />
                           </div>
-                        </div>
+                        </button>
                       </div>
                     </div>
                   </div>
