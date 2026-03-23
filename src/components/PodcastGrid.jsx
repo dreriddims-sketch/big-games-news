@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Play, Disc, ChevronRight, Mic, Upload } from 'lucide-react';
 import { mockDB, saveToMockPodcasts, dbEvents } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
