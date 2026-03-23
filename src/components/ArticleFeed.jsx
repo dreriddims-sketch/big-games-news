@@ -25,7 +25,7 @@ const ArticleFeed = () => {
   };
 
   return (
-    <div id="feed" className="max-w-7xl mx-auto px-6 py-32 space-y-24 relative z-10">
+    <div id="feed" className="w-full px-4 md:px-12 py-32 space-y-24 relative z-10">
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}

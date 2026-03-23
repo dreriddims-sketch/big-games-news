@@ -22,7 +22,7 @@ const NewsPage = () => {
         
         <AdBanner className="pt-24 md:pt-32" />
 
-        <div className="max-w-[1440px] mx-auto">
+        <div className="w-full px-4 md:px-8">
           {/* 2. Content Hub - Podcasts / Intelligence */}
           <PodcastGrid />
 

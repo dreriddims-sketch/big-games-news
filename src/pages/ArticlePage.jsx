@@ -37,7 +37,7 @@ const ArticlePage = () => {
 
   return (
     <div className="min-h-screen bg-background text-white font-sans selection:bg-primary selection:text-black">
-      <main className="max-w-4xl mx-auto px-6 py-32 space-y-16">
+      <main className="max-w-7xl mx-auto px-4 md:px-12 py-32 space-y-16">
         {/* Back Link */}
         <Link to="/" className="inline-flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-white/40 hover:text-primary transition-all group">
            <ArrowLeft size={16} className="group-hover:-translate-x-2 transition-transform" />

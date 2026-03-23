@@ -118,7 +118,7 @@ const HeroBanner = () => {
       </div>
 
       <div className="w-full relative overflow-hidden bg-black/60 pt-0">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 pb-12 pt-8 md:pb-20 md:pt-16 lg:py-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center relative z-10">
+        <div className="w-full px-4 md:px-12 pb-12 pt-8 md:pb-20 md:pt-16 lg:py-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center relative z-10">
           {/* Main Content */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
@@ -127,7 +127,7 @@ const HeroBanner = () => {
             transition={{ type: "spring", bounce: 0.5, duration: 1, delay: 0.1 }}
             className="lg:col-span-12 space-y-8 md:space-y-12 text-center flex flex-col items-center"
           >
-             <div className="space-y-8 max-w-5xl relative group/hero">
+            <div className="space-y-8 max-w-none relative group/hero">
 
               <div className="relative inline-block mt-4">
                 <h1 

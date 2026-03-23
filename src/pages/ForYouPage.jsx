@@ -247,7 +247,7 @@ const ArticlePost = React.memo(({ post, onTagClick }) => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
       </div>
 
-      <div className="relative z-10 w-full h-full flex flex-col justify-end p-8 pb-32 max-w-4xl mx-auto">
+      <div className="relative z-10 w-full h-full flex flex-col justify-end p-8 pb-32 max-w-full mx-auto">
         <motion.div 
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
