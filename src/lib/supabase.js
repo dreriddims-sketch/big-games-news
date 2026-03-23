@@ -149,52 +149,100 @@ export const mockDB = {
 export const dbEvents = new EventTarget();
 export const notifyChange = () => dbEvents.dispatchEvent(new Event('change'));
 
-export const saveToMockSettings = (newSettings) => {
+// REAL SUPABASE PERSISTENCE
+export const saveToMockSettings = async (newSettings) => {
   mockDB.settings = { ...mockDB.settings, ...newSettings };
+  
+  // 1. Local Fallback
   try {
     localStorage.setItem('bg_settings', JSON.stringify(mockDB.settings));
   } catch(e) {
-    console.warn('Storage quota exceeded, changes saved to memory only');
+    console.warn('Storage quota exceeded');
   }
+
+  // 2. Real Supabase Push
+  if (isSupabaseConfigured) {
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ id: 'global', ...mockDB.settings });
+    if (error) console.error('Supabase settings sync failed:', error.message);
+  }
+
   notifyChange();
 };
 
-export const saveToMockPosts = (newPosts) => {
+export const saveToMockPosts = async (newPosts) => {
   mockDB.posts = newPosts;
+  
+  // 1. Local Fallback
   try {
     localStorage.setItem('bg_posts', JSON.stringify(mockDB.posts));
   } catch(e) {
-    console.warn('Storage quota exceeded, changes saved to memory only');
+    console.warn('Storage quota exceeded');
   }
+
+  // 2. Real Supabase Push
+  if (isSupabaseConfigured) {
+    const { error } = await supabase
+      .from('posts')
+      .upsert(newPosts);
+    if (error) console.error('Supabase posts sync failed:', error.message);
+  }
+
   notifyChange();
 };
 
-export const saveToMockPodcasts = (newPodcasts) => {
+export const saveToMockPodcasts = async (newPodcasts) => {
   mockDB.podcasts = newPodcasts;
   try {
     localStorage.setItem('bg_podcasts', JSON.stringify(mockDB.podcasts));
   } catch(e) {
-    console.warn('Storage quota exceeded, changes saved to memory only');
+    console.warn('Storage quota exceeded');
   }
+
+  if (isSupabaseConfigured) {
+    const { error } = await supabase
+      .from('podcasts')
+      .upsert(newPodcasts);
+    if (error) console.error('Supabase podcasts sync failed:', error.message);
+  }
+
   notifyChange();
 };
 
-export const saveToMockUsers = (newUsers) => {
+export const saveToMockUsers = async (newUsers) => {
   mockDB.users = newUsers;
   try {
     localStorage.setItem('bg_users', JSON.stringify(mockDB.users));
   } catch(e) {
-    console.warn('Storage quota exceeded, changes saved to memory only');
+    console.warn('Storage quota exceeded');
   }
+
+  if (isSupabaseConfigured) {
+    const { error } = await supabase
+      .from('users')
+      .upsert(newUsers);
+    if (error) console.error('Supabase user sync failed:', error.message);
+  }
+
   notifyChange();
 };
 
-export const saveToMockSocialPosts = (newSocialPosts) => {
+export const saveToMockSocialPosts = async (newSocialPosts) => {
   mockDB.socialPosts = newSocialPosts;
   try {
     localStorage.setItem('bg_social_posts', JSON.stringify(mockDB.socialPosts));
   } catch(e) {
-    console.warn('Storage quota exceeded, changes saved to memory only');
+    console.warn('Storage quota exceeded');
   }
+
+  if (isSupabaseConfigured) {
+    const { error } = await supabase
+      .from('social_posts')
+      .upsert(newSocialPosts);
+    if (error) console.error('Supabase social sync failed:', error.message);
+  }
+
   notifyChange();
 };
+

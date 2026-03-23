@@ -177,7 +177,10 @@ const HeroBanner = () => {
              onChange={(e) => handleFileChange(e, 'hero_banner')} 
            />
            
-           <div className="premium-card relative min-h-[350px] md:min-h-[500px] flex flex-col justify-end p-0 rounded-2xl md:rounded-3xl overflow-hidden border-white/10 shadow-3xl bg-black">
+           <a 
+             href={editMode ? undefined : "/article/global-esports-tournament-announced"}
+             className="premium-card relative min-h-[350px] md:min-h-[500px] flex flex-col justify-end p-0 rounded-2xl md:rounded-3xl overflow-hidden border-white/10 shadow-3xl bg-black block group"
+           >
               <img 
                 src={settings.hero_banner} 
                 alt="Main" 
@@ -188,14 +191,14 @@ const HeroBanner = () => {
               {editMode && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button 
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); fileInputRef.current?.click(); }}
                     className="flex items-center gap-4 px-12 py-6 bg-primary text-black text-xs font-black uppercase tracking-widest rounded-2xl hover:scale-110 transition-transform shadow-2xl shadow-primary/40"
                   >
                     <Upload size={20} /> Upload Artwork
                   </button>
                 </div>
               )}
-           </div>
+           </a>
         </motion.div>
 
         <motion.div 
@@ -242,25 +245,33 @@ const HeroBanner = () => {
               </div>
               
               <div className="space-y-4">
-                 <h4 
-                   contentEditable={editMode}
-                   onBlur={(e) => handleInlineEdit('spotlight_title', e.target.innerText)}
-                   suppressContentEditableWarning={true}
-                   className={`text-xl font-black italic uppercase leading-none tracking-tight outline-none transition-colors ${editMode ? 'bg-primary/5 rounded-xl p-3 ring-1 ring-primary/20 text-white block' : 'text-white'}`}
+                 <a 
+                   href={editMode ? undefined : "/article/global-esports-tournament-announced"}
+                   className={`block transition-all ${!editMode ? 'hover:text-primary group-hover:translate-x-1' : ''}`}
                  >
-                   {settings.spotlight_title || 'Quantum Node Evolution'}
-                 </h4>
+                   <h4 
+                     contentEditable={editMode}
+                     onBlur={(e) => handleInlineEdit('spotlight_title', e.target.innerText)}
+                     suppressContentEditableWarning={true}
+                     className={`text-xl font-black italic uppercase leading-none tracking-tight outline-none transition-colors ${editMode ? 'bg-primary/5 rounded-xl p-3 ring-1 ring-primary/20 text-white block' : 'text-white'}`}
+                   >
+                     {settings.spotlight_title || 'Global eSports Tournament Announced'}
+                   </h4>
+                 </a>
                  <p 
                    contentEditable={editMode}
                    onBlur={(e) => handleInlineEdit('spotlight_desc', e.target.innerText)}
                    suppressContentEditableWarning={true}
                    className={`text-sm leading-relaxed outline-none transition-colors ${editMode ? 'bg-primary/5 rounded-xl p-3 ring-1 ring-primary/20 text-text-secondary block' : 'text-text-secondary opacity-60'}`}
                  >
-                   {settings.spotlight_desc || 'Deep dive into the decentralized architecture powering the future of the network.'}
+                   {settings.spotlight_desc || 'Get ready for the biggest event in our history. The Big Games World Championship kicks off this Summer with a $1M prize pool.'}
                  </p>
-                 <button className="w-full py-4 border-t border-white/5 text-[10px] font-black uppercase tracking-[0.3em] text-text-secondary hover:text-primary transition-colors">
-                   View Documentation
-                 </button>
+                 <a 
+                   href="/article/global-esports-tournament-announced"
+                   className="block w-full py-4 border-t border-white/5 text-[10px] font-black uppercase tracking-[0.3em] text-text-secondary hover:text-primary transition-colors text-center"
+                 >
+                   Access Intelligence Feed
+                 </a>
               </div>
            </div>
         </motion.div>
