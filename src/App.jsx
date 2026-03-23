@@ -65,7 +65,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
 
 function AppRoutes() {
   const location = useLocation();
-  const isForYou = location.pathname === '/foryou';
+  const isForYou = location.pathname.startsWith('/foryou') || location.pathname.startsWith('/feed');
 
   return (
     <>
