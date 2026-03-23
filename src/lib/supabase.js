@@ -88,7 +88,8 @@ export const fetchSocialPosts = async (userId = null) => {
     ...post,
     userId: post.user_id,
     videoUrl: post.video_url,
-    fileName: post.file_name
+    fileName: post.file_name,
+    ai_moderation_score: post.ai_risk_score // Bridge the naming gap
   }));
 
   return mappedData;
@@ -112,7 +113,7 @@ export const insertSocialPost = async (post) => {
       username: post.username,
       video_url: post.videoUrl,
       description: post.description,
-      status: post.status || 'active', // Respect status or default to active
+      status: post.status || 'approved', // Respect status or default to approved
       likes: post.likes || 0,
       comments: post.comments || 0,
       tab: post.tab || 'foryou',
@@ -143,7 +144,7 @@ export const updatePostStatus = async (id, status, aiScore = null) => {
   // This prevents failures if the column doesn't exist in the database schema yet.
   const updates = { status };
   if (aiScore !== null && aiScore !== undefined) {
-    updates.ai_moderation_score = aiScore;
+    updates.ai_risk_score = aiScore;
   }
 
   const { data, error } = await supabase
@@ -155,7 +156,7 @@ export const updatePostStatus = async (id, status, aiScore = null) => {
   if (error) {
     console.error('[DB] updatePostStatus error:', error.message);
     // If the error confirms the missing column, retry without it as a failsafe
-    if (error.message?.includes('ai_moderation_score')) {
+    if (error.message?.includes('ai_risk_score') || error.message?.includes('ai_moderation_score')) {
       return supabase
         .from('social_posts')
         .update({ status })

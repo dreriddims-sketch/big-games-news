@@ -23,7 +23,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="glass sticky top-0 z-50 border-b border-white/5 backdrop-blur-3xl">
+    <nav className="glass fixed top-0 left-0 right-0 z-50 border-b border-white/5 backdrop-blur-3xl">
       <div className="max-w-7xl mx-auto px-6 h-20 md:h-24 flex items-center justify-between relative z-10">
         <Link to="/" className="flex items-center gap-4 md:gap-6 group">
           <div className="relative">

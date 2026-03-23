@@ -567,22 +567,47 @@ const Profile = () => {
                        ))}
                     </div>
 
-                    <div className="p-6 bg-primary/5 border border-primary/20 rounded-3xl flex items-center justify-between">
-                       <div className="flex items-center gap-3">
-                          <TrendingUp size={20} className="text-primary" />
-                          <div>
-                             <p className="text-[10px] font-black uppercase text-white/60">Current Credit Balance</p>
-                             <p className="text-xl font-black text-white">{currentCredits} CR</p>
+                    <div className="p-8 bg-primary/5 border border-primary/20 rounded-[2.5rem] space-y-8">
+                       <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                             <div className="p-3 bg-primary/20 rounded-2xl text-primary shadow-lg shadow-primary/20"><TrendingUp size={24} /></div>
+                             <div>
+                                <p className="text-[10px] font-black uppercase text-white/40 tracking-widest">Available Balance</p>
+                                <p className="text-3xl font-black text-white italic">{currentCredits} <span className="text-xs not-italic text-primary">CR</span></p>
+                             </div>
                           </div>
                        </div>
-                       <a 
-                          href="https://buy.stripe.com/8x28wJ1nXejA6VTcUie7m00" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="px-6 py-2 bg-primary text-black font-black uppercase tracking-widest text-[9px] rounded-full hover:scale-105 transition-all shadow-lg shadow-primary/20"
-                       >
-                         Reload Network Credits
-                       </a>
+
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {[
+                             { name: 'Starter Pack', credits: '700', price: '7', url: 'https://buy.stripe.com/7sY28ld6F0sK5RPaMae7m01' },
+                             { name: 'Network Pilot', credits: '1500', price: '15', url: 'https://buy.stripe.com/5kQ8wJgiRfnEfspf2qe7m02' },
+                             { name: 'Core Contributor', credits: '3000', price: '25', url: 'https://buy.stripe.com/dRm14h0jT3EW3JHf2qe7m03', badge: 'Popular' },
+                             { name: 'Network Elite', credits: '7500', price: '50', url: 'https://buy.stripe.com/00wfZbeaJ8Zgcgdf2qe7m04', badge: 'Best Value' }
+                          ].map(tier => (
+                             <a 
+                                key={tier.credits}
+                                href={tier.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group relative p-5 bg-white/5 border border-white/10 rounded-3xl hover:border-primary/40 hover:bg-white/10 transition-all flex items-center justify-between overflow-hidden"
+                             >
+                                {tier.badge && (
+                                   <div className="absolute -right-8 top-2 bg-primary text-black text-[8px] font-black uppercase px-8 py-1 rotate-45 shadow-lg">
+                                      {tier.badge}
+                                   </div>
+                                )}
+                                <div className="space-y-1">
+                                   <p className="text-[9px] font-black uppercase text-white/40 group-hover:text-primary transition-colors">{tier.name}</p>
+                                   <p className="text-xl font-black text-white">{tier.credits} <span className="text-[10px] text-white/40">CR</span></p>
+                                </div>
+                                <div className="text-right">
+                                   <p className="text-xs font-black text-primary group-hover:scale-110 transition-transform">{tier.price} EUR</p>
+                                   <p className="text-[8px] font-black uppercase text-white/20 mt-1">Stripe Secure</p>
+                                </div>
+                             </a>
+                          ))}
+                       </div>
                     </div>
                   </>
                 )}

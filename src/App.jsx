@@ -1,6 +1,6 @@
 /* src/App.jsx */
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import NewsPage from './pages/NewsPage';
 import ArticlePage from './pages/ArticlePage';
@@ -63,45 +63,50 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
 };
 
 function AppRoutes() {
+  const location = useLocation();
+  const isForYou = location.pathname === '/foryou';
+
   return (
     <>
-      <Navbar />
+      {!isForYou && <Navbar />}
       <LowCreditAlert />
       <FloatingNav />
-      <Routes>
-        <Route path="/" element={<NewsPage />} />
-        <Route path="/news" element={<NewsPage />} />
-        <Route path="/feed" element={<FeedPage />} />
-        <Route path="/foryou" element={<ForYouPage />} />
-        <Route path="/archive" element={<ArchivePage />} />
-        <Route path="/signals" element={<SignalsPage />} />
-        <Route path="/article/:slug" element={<ArticlePage />} />
-        <Route path="/login/pin" element={<PinEntry />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/signin" element={<UserLogin />} />
-        <Route path="/social" element={<SocialDashboard />} />
-        <Route path="/profile" element={<Profile />} />
-        
-        {/* Legal & Corporate Pages */}
-        <Route path="/privacy" element={<LegalPage type="privacy" />} />
-        <Route path="/terms" element={<LegalPage type="terms" />} />
-        <Route path="/careers" element={<LegalPage type="careers" />} />
-        <Route path="/press" element={<LegalPage type="press" />} />
-        
-        {/* Protected Dashboard Routes */}
-        <Route 
-          path="/dashboard/*" 
-          element={
-            <ProtectedRoute requireAdmin={true}>
-              <Dashboard />
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <div className={isForYou ? "min-h-screen flex flex-col" : "pt-20 md:pt-24 min-h-screen flex flex-col"}>
+        <Routes>
+          <Route path="/" element={<NewsPage />} />
+          <Route path="/news" element={<NewsPage />} />
+          <Route path="/feed" element={<FeedPage />} />
+          <Route path="/foryou" element={<ForYouPage />} />
+          <Route path="/archive" element={<ArchivePage />} />
+          <Route path="/signals" element={<SignalsPage />} />
+          <Route path="/article/:slug" element={<ArticlePage />} />
+          <Route path="/login/pin" element={<PinEntry />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/signin" element={<UserLogin />} />
+          <Route path="/social" element={<SocialDashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          
+          {/* Legal & Corporate Pages */}
+          <Route path="/privacy" element={<LegalPage type="privacy" />} />
+          <Route path="/terms" element={<LegalPage type="terms" />} />
+          <Route path="/careers" element={<LegalPage type="careers" />} />
+          <Route path="/press" element={<LegalPage type="press" />} />
+          
+          {/* Protected Dashboard Routes */}
+          <Route 
+            path="/dashboard/*" 
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
     </>
   );
 }

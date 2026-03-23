@@ -1,7 +1,7 @@
 /* src/pages/ForYouPage.jsx - Public-facing For You feed */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Share2, Gift, Play, Zap, UserPlus, MessageCircle } from 'lucide-react';
+import { Heart, Share2, Gift, Play, Zap, UserPlus, MessageCircle, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fetchSocialPosts } from '../lib/supabase';
 
@@ -66,11 +66,127 @@ const GiftPanel = ({ post, onClose }) => {
   );
 };
 
+
+const VideoPost = ({ post, isLiked, onLike, onGift, activePostId }) => {
+  const videoRef = React.useRef(null);
+  const [isInView, setIsInView] = React.useState(false);
+  const isActive = activePostId === post.id;
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.6 }
+    );
+
+    if (videoRef.current) observer.observe(videoRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Play/Pause logic for native videos
+  React.useEffect(() => {
+    if (videoRef.current && !post.videoUrl?.includes('youtube.com')) {
+      const video = videoRef.current.querySelector('video');
+      if (video) {
+        if (isActive && isInView) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      }
+    }
+  }, [isActive, isInView, post.videoUrl]);
+
+  return (
+    <div ref={videoRef} className="h-full w-full snap-start relative bg-black flex items-center justify-center overflow-hidden">
+      <div className="relative w-full h-full overflow-hidden bg-black shadow-none border-none">
+        
+        {/* Full-screen video content */}
+        {(isInView || isActive) ? (
+          post.videoUrl?.includes('youtube.com') || post.videoUrl?.includes('youtu.be') ? (
+            <iframe
+              src={post.videoUrl.replace('watch?v=', 'embed/') + `?autoplay=${isActive ? 1 : 0}&mute=1&loop=1&controls=0&modestbranding=1&rel=0`}
+              className="w-full h-full absolute inset-0 object-cover scale-[1.05]"
+              frameBorder="0"
+              allow="autoplay"
+              loading="lazy"
+            />
+          ) : (
+            <video 
+              src={post.videoUrl} 
+              className="w-full h-full object-cover" 
+              loop 
+              muted 
+              playsInline 
+              preload="metadata"
+              autoPlay={isActive}
+            />
+          )
+        ) : (
+          <div className="w-full h-full bg-black flex items-center justify-center">
+            <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+          </div>
+        )}
+
+        {/* Gradient overlay - lighter to let video shine */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none" />
+
+        {/* Bottom info - pinned to bottom of screen */}
+        <div className="absolute bottom-0 left-0 right-0 p-8 pb-32 flex justify-between items-end">
+          <div className="space-y-3 max-w-[80%] pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-black text-sm border border-primary/20 backdrop-blur-md">
+                {(post.username || 'U').charAt(0)}
+              </div>
+              <span className="font-black text-white text-lg drop-shadow-lg italic">@{post.username || 'user'}</span>
+              <button className="px-3 py-1 bg-white text-black font-black text-[9px] uppercase rounded-lg hover:bg-primary transition-all ml-2">Follow</button>
+            </div>
+            {post.description && (
+              <p className="text-white text-sm leading-relaxed drop-shadow-md italic line-clamp-2">"{post.description}"</p>
+            )}
+            <div className="flex items-center gap-2 text-white/60 text-[10px] uppercase font-black tracking-widest">
+              <Zap size={10} className="text-primary" /> Core Extraction Node: {activePostId?.toString().slice(-4)}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-6 items-center pb-32 pointer-events-auto">
+            <button onClick={() => onLike(post.id)} className="flex flex-col items-center gap-1 group">
+              <div className={`p-4 rounded-full backdrop-blur-2xl border transition-all group-active:scale-90 shadow-2xl ${isLiked ? 'bg-red-500/40 border-red-500/60' : 'bg-black/40 border-white/20'}`}>
+                <Heart size={28} className={`transition-colors ${isLiked ? 'text-red-400 fill-red-400' : 'text-white'}`} />
+              </div>
+              <span className="text-[10px] font-black text-white drop-shadow-lg">Like</span>
+            </button>
+
+            <button onClick={() => onGift(post.id)} className="flex flex-col items-center gap-1 group">
+              <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all group-active:scale-90 shadow-2xl">
+                <Gift size={28} className="text-white group-hover:text-primary transition-colors" />
+              </div>
+              <span className="text-[10px] font-black text-white/60 drop-shadow-lg">Gift</span>
+            </button>
+
+            <button
+              onClick={() => navigator.share?.({ url: window.location.href }) || navigator.clipboard?.writeText(window.location.href)}
+              className="flex flex-col items-center gap-1 group"
+            >
+              <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-white/10 transition-all group-active:scale-90 shadow-2xl">
+                <Share2 size={28} className="text-white" />
+              </div>
+              <span className="text-[10px] font-black text-white/60 drop-shadow-lg">Share</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ForYouPage = () => {
   const { user, isPostLiked, toggleLike, currentCredits } = useAuth();
   const [posts, setPosts] = useState([]);
   const [likeCounts, setLikeCounts] = useState({});
   const [giftingPost, setGiftingPost] = useState(null);
+  const [activePostId, setActivePostId] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -83,10 +199,10 @@ const ForYouPage = () => {
           videoUrl: p.videoUrl || p.video_url,
         }));
       setPosts(normalised);
-      // Init like counts from post data
+      if (normalised.length > 0) setActivePostId(normalised[0].id);
+      
       const counts = {};
       normalised.forEach(p => { counts[p.id] = p.likes || 0; });
-      // Load persisted local like bumps
       const bumps = JSON.parse(localStorage.getItem('bg_like_bumps') || '{}');
       Object.keys(bumps).forEach(id => {
         if (counts[id] !== undefined) counts[id] = (counts[id]) + bumps[id];
@@ -113,18 +229,31 @@ const ForYouPage = () => {
   };
 
   return (
-    <div className="relative bg-black min-h-screen">
-      {/* Header */}
-      <div className="sticky top-0 z-20 px-4 pt-4 pb-2 bg-gradient-to-b from-black to-transparent pointer-events-none">
-        <div className="text-center pointer-events-auto">
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 flex items-center justify-center gap-2">
-            <Zap size={10} className="text-primary" /> For You Feed
-          </span>
+    <div className="relative bg-black h-svh w-screen flex flex-col overflow-hidden">
+      {/* Minimal Overlay Info (Instead of Navbar) */}
+      <div className="absolute top-8 left-8 z-50 pointer-events-none">
+        <div className="flex items-center gap-4">
+          <Link to="/" className="pointer-events-auto bg-black/40 backdrop-blur-md p-3 rounded-full border border-white/10 text-white/60 hover:text-white transition-all">
+            <X size={20} />
+          </Link>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 flex items-center gap-2">
+              <Zap size={10} className="text-primary" /> For You 
+            </span>
+            <span className="text-[8px] font-black uppercase tracking-[0.1em] text-primary">LIVE_TERMINAL</span>
+          </div>
         </div>
       </div>
 
-      {/* Feed */}
-      <div className="h-[calc(100svh-80px)] overflow-y-scroll snap-y snap-mandatory no-scrollbar">
+      <div 
+        className="flex-1 h-full w-full overflow-y-scroll snap-y snap-mandatory no-scrollbar overflow-x-hidden"
+        onScroll={(e) => {
+          const index = Math.round(e.target.scrollTop / e.target.clientHeight);
+          if (posts[index] && posts[index].id !== activePostId) {
+            setActivePostId(posts[index].id);
+          }
+        }}
+      >
         {posts.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
             <div className="p-8 bg-white/5 rounded-full text-white/10 animate-pulse"><Play size={64} /></div>
@@ -138,81 +267,27 @@ const ForYouPage = () => {
           </div>
         ) : (
           posts.map(post => (
-            <div key={post.id} className="h-[100svh] w-full snap-start relative bg-black flex items-center justify-center overflow-hidden">
-              <div className="relative w-full max-w-sm h-full md:h-[94%] md:rounded-[2.5rem] overflow-hidden bg-white/5 shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/5">
-                {post.videoUrl?.includes('youtube.com') || post.videoUrl?.includes('youtu.be') ? (
-                  <iframe
-                    src={post.videoUrl.replace('watch?v=', 'embed/') + '?autoplay=1&mute=1&loop=1&controls=0&modestbranding=1'}
-                    className="w-[150%] h-[150%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover pointer-events-none"
-                    frameBorder="0"
-                    allow="autoplay"
-                  />
-                ) : (
-                  <video src={post.videoUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
-                )}
-
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-black/30 pointer-events-none" />
-
-                {/* Gift panel */}
-                {giftingPost === post.id && (
-                  <GiftPanel post={post} onClose={() => setGiftingPost(null)} />
-                )}
-
-                {/* Bottom info */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 pb-24 md:pb-12 flex justify-between items-end">
-                  <div className="space-y-2 max-w-[75%]">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-black text-sm border border-primary/20">
-                        {(post.username || 'U').charAt(0)}
-                      </div>
-                      <span className="font-black text-white italic">@{post.username || 'user'}</span>
-                    </div>
-                    {post.description && (
-                      <p className="text-white/80 text-sm leading-relaxed line-clamp-2">{post.description}</p>
-                    )}
-                  </div>
-
-                  {/* Action buttons */}
-                  <div className="flex flex-col gap-5 items-center pb-24 md:pb-12 pointer-events-auto">
-                    <button
-                      onClick={() => handleLike(post.id)}
-                      className="flex flex-col items-center gap-1 group"
-                    >
-                      <div className={`p-3.5 rounded-full backdrop-blur-xl border transition-all group-active:scale-90 ${isPostLiked(post.id) ? 'bg-red-500/20 border-red-500/40' : 'bg-black/60 border-white/10'}`}>
-                        <Heart size={24} className={`transition-colors ${isPostLiked(post.id) ? 'text-red-400 fill-red-400' : 'text-white'}`} />
-                      </div>
-                      <span className="text-[10px] font-black text-white">{likeCounts[post.id] || 0}</span>
-                    </button>
-
-                    <button
-                      onClick={() => setGiftingPost(giftingPost === post.id ? null : post.id)}
-                      className="flex flex-col items-center gap-1 group"
-                    >
-                      <div className="p-3.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all group-active:scale-90">
-                        <Gift size={24} className="text-white group-hover:text-primary transition-colors" />
-                      </div>
-                      <span className="text-[10px] font-black text-white/60">Gift</span>
-                    </button>
-
-                    <button
-                      onClick={() => navigator.share?.({ url: window.location.href }) || navigator.clipboard?.writeText(window.location.href)}
-                      className="flex flex-col items-center gap-1 group"
-                    >
-                      <div className="p-3.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 group-hover:bg-white/10 transition-all group-active:scale-90">
-                        <Share2 size={24} className="text-white" />
-                      </div>
-                      <span className="text-[10px] font-black text-white/60">Share</span>
-                    </button>
+            <div key={post.id} className="relative h-full w-full">
+              <VideoPost 
+                post={post} 
+                isLiked={isPostLiked(post.id)}
+                onLike={handleLike}
+                onGift={(id) => setGiftingPost(id)}
+                activePostId={activePostId}
+              />
+              
+              {giftingPost === post.id && (
+                <div className="absolute inset-0 z-40 flex items-center justify-center p-4">
+                  <div className="w-full max-w-sm">
+                    <GiftPanel post={post} onClose={() => setGiftingPost(null)} />
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           ))
         )}
       </div>
 
-      {/* Sign up CTA for non-users */}
       {!user && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30">
           <Link

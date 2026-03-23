@@ -84,7 +84,7 @@ const UserModeration = () => {
   }, []);
 
   const handleApprove = async (id) => {
-    const { data, error } = await updatePostStatus(id, 'active');
+    const { data, error } = await updatePostStatus(id, 'approved');
     
     if (error) {
       alert("Authorization Failed: " + (error.message || JSON.stringify(error)));
@@ -92,7 +92,7 @@ const UserModeration = () => {
       alert("Target Trace Lost: Could not find transmission " + id + " in the network database. Verify ID type and RLS permissions.");
     } else {
       // Local update for instant response, then reload to be sure
-      setPosts(prev => prev.map(p => (String(p.id) === String(id) || p.id === id) ? { ...p, status: 'active' } : p));
+      setPosts(prev => prev.map(p => (String(p.id) === String(id) || p.id === id) ? { ...p, status: 'approved' } : p));
       await loadData();
     }
   };
@@ -128,9 +128,11 @@ const UserModeration = () => {
     const results = await autoModerate(pending);
 
     for (const result of results) {
-      if (result.status === 'approved' || result.status === 'rejected' || result.status === 'active') {
-        const finalStatus = (result.status === 'approved' || result.status === 'active') ? 'active' : 'rejected';
+      if (result.status === 'approved' || result.status === 'active') {
+        const finalStatus = 'approved';
         await updatePostStatus(result.id, finalStatus, result.ai_moderation_score);
+      } else if (result.status === 'rejected') {
+        await updatePostStatus(result.id, 'rejected', result.ai_moderation_score);
       }
     }
     await loadData(); // Reload all data to reflect changes
