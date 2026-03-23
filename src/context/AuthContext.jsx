@@ -70,16 +70,17 @@ export const AuthProvider = ({ children }) => {
   const login = (email, password) => {
     // Stage 2 verification (admin)
     if (email === 'dreriddims@gmail.com' && password === 'Mtvkannon2020@1') {
+      const adminUser = { id: 'admin-1', email: 'dreriddims@gmail.com', role: 'admin', username: 'dreriddims' };
       setIsAdmin(true);
-      setUser({ email: 'dreriddims@gmail.com', role: 'admin' });
+      setUser(adminUser);
       return true;
     }
     
     // Check normal users
     const savedUsers = JSON.parse(localStorage.getItem('bg_users') || '[]');
     // hardcoded initial fallback check if localstorage empty
-    if (email === 'info.p2sr@gmail.com' && password === 'Mtvkannon2020@1' && savedUsers.length === 0) {
-      const initUser = { id: 'u1', email: 'info.p2sr@gmail.com', password: 'Mtvkannon2020@1', isOver18: true, role: 'user', username: 'info_p2sr', bio: 'Content Creator' };
+    if (email === 'info.p2sr@gmail.com' && password === 'Mtvkannon2020@1' && savedUsers.filter(u => u.id === 'u-info-p2sr').length === 0) {
+      const initUser = { id: 'u-info-p2sr', email: 'info.p2sr@gmail.com', password: 'Mtvkannon2020@1', isOver18: true, role: 'user', username: 'info_p2sr', bio: 'Content Creator' };
       savedUsers.push(initUser);
       localStorage.setItem('bg_users', JSON.stringify(savedUsers));
     }

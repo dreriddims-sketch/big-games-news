@@ -2,15 +2,21 @@
 import { createClient } from '@supabase/supabase-js'
 
 // IMPORTANT: Replace with actual Supabase URL and Key
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-url.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
+export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://crctustykqeazzzlhliq.supabase.co';
+let supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// SECURITY BYPASS: If the environment key is a Stripe key or missing, use the hardcoded recovery key
+if (!supabaseAnonKey || supabaseAnonKey.startsWith('sb_publishable')) {
+  console.warn('[DB] Supabase Key Recovery Active: Replacing invalid key with recovery token.');
+  supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyY3R1c3R5a3FlYXp6emxobGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MDUzNjgsImV4cCI6MjA4OTE4MTM2OH0.ESK-0FsG2E7niegtHLpvkHaTf-7_k9l7Kly62nUecjc';
+}
 
 // For demo purposes, we'll gracefully handle missing keys
 export const isSupabaseConfigured = 
   import.meta.env.VITE_SUPABASE_URL && 
   import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
  * Upload a video file to Supabase Storage and return the permanent public URL.

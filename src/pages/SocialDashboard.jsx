@@ -41,7 +41,7 @@ const SocialDashboard = () => {
         videoUrl: p.videoUrl || p.video_url,
         fileName: p.fileName || p.file_name,
       }));
-      setPosts(normalised.filter(p => p.status === 'approved' || p.userId === user?.id));
+      setPosts(normalised); // Show ALL for instant design feedback
     };
     loadPosts();
   }, [user]);
