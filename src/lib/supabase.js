@@ -82,7 +82,16 @@ export const fetchSocialPosts = async (userId = null) => {
     console.error('[DB] fetchSocialPosts error:', error.message);
     return JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
   }
-  return data || [];
+  
+  // MAP SNAKE_CASE TO CAMELCASE FOR UI CONSISTENCY
+  const mappedData = (data || []).map(post => ({
+    ...post,
+    userId: post.user_id,
+    videoUrl: post.video_url,
+    fileName: post.file_name
+  }));
+
+  return mappedData;
 };
 
 /**
