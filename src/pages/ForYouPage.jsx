@@ -69,6 +69,39 @@ const GiftPanel = ({ post, onClose }) => {
   );
 };
 
+const GiftIcon = ({ size = 16, className = "" }) => (
+  <Gift size={size} className={className} />
+);
+
+const FloatingGifts = () => {
+  const [offsets] = useState(() => 
+    Array.from({ length: 4 }).map(() => ({
+      x: (Math.random() - 0.5) * 60,
+      y: (Math.random() - 0.5) * 60,
+      scale: 0.5 + Math.random() * 0.5,
+      rotate: Math.random() * 360,
+      delay: Math.random() * 2
+    }))
+  );
+
+  return (
+    <>
+      {offsets.map((off, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: [0, 0.4, 0], scale: [0, off.scale, 0], rotate: off.rotate }}
+          transition={{ duration: 4, repeat: Infinity, delay: off.delay }}
+          style={{ position: 'absolute', left: `calc(50% + ${off.x}px)`, top: `calc(50% + ${off.y}px)` }}
+          className="pointer-events-none text-primary/50"
+        >
+          <GiftIcon size={10} />
+        </motion.div>
+      ))}
+    </>
+  );
+};
+
 const TagList = ({ tags, onTagClick, className = "" }) => {
   if (!tags || tags.length === 0) return null;
   return (
@@ -217,11 +250,12 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
               </div>
               <span className="text-[10px] font-black text-white/60 drop-shadow-lg uppercase tracking-widest leading-none">{post.views || 0}</span>
             </div>
-            <button onClick={(e) => { e.stopPropagation(); onGift(post.id); }} className="flex flex-col items-center gap-1 group">
-              <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all group-active:scale-90 shadow-2xl">
+            <button onClick={(e) => { e.stopPropagation(); onGift(post.id); }} className="flex flex-col items-center gap-1 group relative">
+              <FloatingGifts />
+              <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all group-active:scale-90 shadow-2xl relative z-10">
                 <Gift size={24} className="text-white group-hover:text-primary transition-colors" />
               </div>
-              <span className="text-[10px] font-black text-white/60 drop-shadow-lg uppercase tracking-widest">Gift</span>
+              <span className="text-[10px] font-black text-white drop-shadow-lg uppercase tracking-widest">{post.gifts || 0} GIFTS</span>
             </button>
           </div>
         </div>
@@ -300,11 +334,12 @@ const ArticlePost = React.memo(({ post, isLiked, onLike, onGift, likeCount, onTa
             <span className="text-[10px] font-black text-white/60 drop-shadow-lg uppercase tracking-widest leading-none">{post.views || 0}</span>
           </div>
 
-          <button onClick={(e) => { e.stopPropagation(); onGift(post.id); }} className="flex flex-col items-center gap-1 group">
-            <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all group-active:scale-90 shadow-2xl">
+          <button onClick={(e) => { e.stopPropagation(); onGift(post.id); }} className="flex flex-col items-center gap-1 group relative">
+            <FloatingGifts />
+            <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all group-active:scale-90 shadow-2xl relative z-10">
               <Gift size={24} className="text-white group-hover:text-primary transition-colors" />
             </div>
-            <span className="text-[10px] font-black text-white/60 drop-shadow-lg uppercase tracking-widest leading-none mt-1 text-center">GIFT</span>
+            <span className="text-[10px] font-black text-white drop-shadow-lg uppercase tracking-widest leading-none mt-1 text-center">{post.gifts || 0} GIFTS</span>
           </button>
 
           <button 

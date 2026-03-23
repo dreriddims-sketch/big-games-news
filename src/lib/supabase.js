@@ -92,6 +92,7 @@ export const fetchSocialPosts = async (userId = null) => {
     avatarUrl: post.avatar_url,
     tags: post.tags || [], // Ensure tags is always an array
     views: post.views || 0,
+    gifts: post.gifts || 0,
     ai_moderation_score: post.ai_risk_score // Bridge the naming gap
   }));
 
@@ -245,7 +246,11 @@ export const fetchArticles = async () => {
     console.error('[DB] fetchArticles error:', error.message);
     return JSON.parse(localStorage.getItem('bg_posts') || '[]');
   }
-  return data || [];
+  return (data || []).map(p => ({
+    ...p,
+    gifts: p.gifts || 0,
+    views: p.views || 0
+  }));
 };
 
 /**

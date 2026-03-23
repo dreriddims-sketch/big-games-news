@@ -5,6 +5,36 @@ import { useAuth } from '../context/AuthContext';
 import { fetchSocialPosts, deletePost, incrementViews } from '../lib/supabase';
 import { Video, Heart, ShieldAlert, Trash2, Edit2, Upload, Shield, Gift, Zap, Share2, X as Close, Play, TrendingUp, Users, Eye } from 'lucide-react';
 import UploadModal from '../components/UploadModal';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const FloatingGifts = () => {
+  const [offsets] = useState(() => 
+    Array.from({ length: 4 }).map(() => ({
+      x: (Math.random() - 0.5) * 60,
+      y: (Math.random() - 0.5) * 60,
+      scale: 0.5 + Math.random() * 0.5,
+      rotate: Math.random() * 360,
+      delay: Math.random() * 2
+    }))
+  );
+
+  return (
+    <>
+      {offsets.map((off, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: [0, 0.4, 0], scale: [0, off.scale, 0], rotate: off.rotate }}
+          transition={{ duration: 4, repeat: Infinity, delay: off.delay }}
+          style={{ position: 'absolute', left: `calc(50% + ${off.x}px)`, top: `calc(50% + ${off.y}px)` }}
+          className="pointer-events-none text-primary/50"
+        >
+          <Gift size={10} />
+        </motion.div>
+      ))}
+    </>
+  );
+};
 
 const VideoModal = ({ post, isOpen, onClose, onDelete }) => {
   useEffect(() => {
@@ -62,10 +92,11 @@ const VideoModal = ({ post, isOpen, onClose, onDelete }) => {
                <span className="text-[10px] font-black uppercase text-white/60">{post.views || 0}</span>
              </div>
              <div className="flex flex-col items-center gap-1 group">
-               <div className="p-4 bg-black/40 backdrop-blur-xl rounded-full text-white border border-white/10 shadow-lg">
-                 <Gift size={24} className="group-hover:text-primary transition-colors" />
+               <div className="p-4 bg-black/40 backdrop-blur-xl rounded-full text-white border border-white/10 shadow-lg relative">
+                 <FloatingGifts />
+                 <Gift size={24} className="group-hover:text-primary transition-colors relative z-10" />
                </div>
-               <span className="text-[10px] font-black uppercase text-white/60">Gift</span>
+               <span className="text-[10px] font-black uppercase text-white/60">{post.gifts || 0} GIFTS</span>
              </div>
           </div>
         </div>
@@ -105,9 +136,10 @@ const VideoModal = ({ post, isOpen, onClose, onDelete }) => {
                     <Share2 size={20} className="group-hover:text-primary transition-all" />
                     <div className="text-[10px] font-black uppercase tracking-widest text-white/60 group-hover:text-white">Share</div>
                  </button>
-                 <button className="flex items-center justify-center gap-3 py-4 bg-primary/10 hover:bg-primary/20 rounded-2xl transition-all group border border-primary/20 shadow-lg shadow-primary/5">
-                    <Gift size={20} className="text-primary group-hover:scale-110 transition-all" />
-                    <div className="text-[10px] font-black uppercase tracking-widest text-primary">Send Gift</div>
+                 <button className="flex items-center justify-center gap-3 py-4 bg-primary/10 hover:bg-primary/20 rounded-2xl transition-all group border border-primary/20 shadow-lg shadow-primary/5 relative">
+                     <FloatingGifts />
+                    <Gift size={20} className="text-primary group-hover:scale-110 transition-all relative z-10" />
+                    <div className="text-[10px] font-black uppercase tracking-widest text-primary relative z-10">{post.gifts || 0} Gifts</div>
                  </button>
                  <button className="flex items-center justify-center gap-3 py-4 bg-white/5 hover:bg-primary text-white hover:text-black rounded-2xl transition-all group border border-white/5 hover:border-primary shadow-lg">
                     <TrendingUp size={20} className="group-hover:scale-110 transition-all" />
@@ -352,6 +384,9 @@ const Profile = () => {
                               </div>
                               <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg border border-white/5">
                                  <Heart size={10} fill="currentColor" className="text-red-400" /> {post.likes || 0}
+                              </div>
+                              <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg border border-white/5">
+                                 <Gift size={10} fill="currentColor" className="text-primary" /> {post.gifts || 0}
                               </div>
                            </div>
 
