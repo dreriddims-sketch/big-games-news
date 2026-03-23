@@ -49,6 +49,7 @@ const UploadModal = ({ isOpen, onClose, user, onUploadSuccess }) => {
         userId: user?.id || 'anonymous',
         username: user?.username || user?.email?.split('@')[0] || 'anonymous',
         videoUrl: finalVideoUrl,
+        avatarUrl: user?.photo || user?.photoUrl || null,
         description: description || 'New Transmission',
         status: 'pending',
         likes: 0,

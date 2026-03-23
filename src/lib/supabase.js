@@ -89,6 +89,7 @@ export const fetchSocialPosts = async (userId = null) => {
     userId: post.user_id,
     videoUrl: post.video_url,
     fileName: post.file_name,
+    avatarUrl: post.avatar_url,
     ai_moderation_score: post.ai_risk_score // Bridge the naming gap
   }));
 
@@ -112,6 +113,7 @@ export const insertSocialPost = async (post) => {
       user_id: post.userId,
       username: post.username,
       video_url: post.videoUrl,
+      avatar_url: post.avatarUrl || null,
       description: post.description,
       status: post.status || 'approved', // Respect status or default to approved
       likes: post.likes || 0,

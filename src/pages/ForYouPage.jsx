@@ -67,7 +67,7 @@ const GiftPanel = ({ post, onClose }) => {
 };
 
 
-const VideoPost = ({ post, isLiked, onLike, onGift, activePostId }) => {
+const VideoPost = ({ post, isLiked, onLike, onGift, activePostId, likeCount }) => {
   const videoRef = React.useRef(null);
   const [isInView, setIsInView] = React.useState(false);
   const isActive = activePostId === post.id;
@@ -119,7 +119,7 @@ const VideoPost = ({ post, isLiked, onLike, onGift, activePostId }) => {
               loop 
               muted 
               playsInline 
-              preload="metadata"
+              preload={isActive ? "auto" : "metadata"}
               autoPlay={isActive}
             />
           )
@@ -136,8 +136,14 @@ const VideoPost = ({ post, isLiked, onLike, onGift, activePostId }) => {
         <div className="absolute bottom-0 left-0 right-0 p-8 pb-32 flex justify-between items-end">
           <div className="space-y-3 max-w-[80%] pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-black text-sm border border-primary/20 backdrop-blur-md">
-                {(post.username || 'U').charAt(0)}
+              <div className="w-10 h-10 rounded-full border-2 border-primary/20 overflow-hidden bg-black flex items-center justify-center">
+                {post.avatarUrl || post.avatar_url ? (
+                  <img src={post.avatarUrl || post.avatar_url} className="w-full h-full object-cover" alt={post.username} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-primary font-black text-sm backdrop-blur-md">
+                    {(post.username || 'U').charAt(0)}
+                  </div>
+                )}
               </div>
               <span className="font-black text-white text-lg drop-shadow-lg italic">@{post.username || 'user'}</span>
               <button className="px-3 py-1 bg-white text-black font-black text-[9px] uppercase rounded-lg hover:bg-primary transition-all ml-2">Follow</button>
@@ -145,22 +151,20 @@ const VideoPost = ({ post, isLiked, onLike, onGift, activePostId }) => {
             {post.description && (
               <p className="text-white text-sm leading-relaxed drop-shadow-md italic line-clamp-2">"{post.description}"</p>
             )}
-            <div className="flex items-center gap-2 text-white/60 text-[10px] uppercase font-black tracking-widest">
-              <Zap size={10} className="text-primary" /> Core Extraction Node: {activePostId?.toString().slice(-4)}
-            </div>
+
           </div>
 
-          <div className="flex flex-col gap-6 items-center pb-32 pointer-events-auto">
+          <div className="flex flex-col gap-5 items-center pb-32 pointer-events-auto">
             <button onClick={() => onLike(post.id)} className="flex flex-col items-center gap-1 group">
-              <div className={`p-4 rounded-full backdrop-blur-2xl border transition-all group-active:scale-90 shadow-2xl ${isLiked ? 'bg-red-500/40 border-red-500/60' : 'bg-black/40 border-white/20'}`}>
-                <Heart size={28} className={`transition-colors ${isLiked ? 'text-red-400 fill-red-400' : 'text-white'}`} />
+              <div className={`p-3 rounded-full backdrop-blur-2xl border transition-all group-active:scale-90 shadow-xl ${isLiked ? 'bg-red-500/40 border-red-500/60' : 'bg-black/40 border-white/20'}`}>
+                <Heart size={22} className={`transition-colors ${isLiked ? 'text-red-400 fill-red-400' : 'text-white'}`} />
               </div>
-              <span className="text-[10px] font-black text-white drop-shadow-lg">Like</span>
+              <span className="text-[10px] font-black text-white drop-shadow-lg">{likeCount || 0}</span>
             </button>
 
             <button onClick={() => onGift(post.id)} className="flex flex-col items-center gap-1 group">
-              <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all group-active:scale-90 shadow-2xl">
-                <Gift size={28} className="text-white group-hover:text-primary transition-colors" />
+              <div className="p-3 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all group-active:scale-90 shadow-xl">
+                <Gift size={22} className="text-white group-hover:text-primary transition-colors" />
               </div>
               <span className="text-[10px] font-black text-white/60 drop-shadow-lg">Gift</span>
             </button>
@@ -169,8 +173,8 @@ const VideoPost = ({ post, isLiked, onLike, onGift, activePostId }) => {
               onClick={() => navigator.share?.({ url: window.location.href }) || navigator.clipboard?.writeText(window.location.href)}
               className="flex flex-col items-center gap-1 group"
             >
-              <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-white/10 transition-all group-active:scale-90 shadow-2xl">
-                <Share2 size={28} className="text-white" />
+              <div className="p-3 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-white/10 transition-all group-active:scale-90 shadow-xl">
+                <Share2 size={22} className="text-white" />
               </div>
               <span className="text-[10px] font-black text-white/60 drop-shadow-lg">Share</span>
             </button>
@@ -274,6 +278,7 @@ const ForYouPage = () => {
                 onLike={handleLike}
                 onGift={(id) => setGiftingPost(id)}
                 activePostId={activePostId}
+                likeCount={likeCounts[post.id]}
               />
               
               {giftingPost === post.id && (
