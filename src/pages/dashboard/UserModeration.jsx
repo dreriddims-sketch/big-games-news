@@ -87,7 +87,7 @@ const UserModeration = () => {
     const { data, error } = await updatePostStatus(id, 'active');
     
     if (error) {
-      alert("Transmission Authorization Error: " + error);
+      alert("Authorization Failed: " + (error.message || JSON.stringify(error)));
     } else if (!data || data.length === 0) {
       alert("Target Trace Lost: Could not find transmission " + id + " in the network database. Verify ID type and RLS permissions.");
     } else {
@@ -101,7 +101,7 @@ const UserModeration = () => {
     if (!window.confirm("Retract this transmission from the network?")) return;
     const { error } = await deletePost(id);
     if (error) {
-      alert("Retraction Failed: " + error);
+      alert("Retraction Failed: " + (error.message || JSON.stringify(error)));
     } else {
       setPosts(prev => prev.filter(p => String(p.id) !== String(id) && p.id !== id));
       if (previewPost && (String(previewPost.id) === String(id) || previewPost.id === id)) setPreviewPost(null);
