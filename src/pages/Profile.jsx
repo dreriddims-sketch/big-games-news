@@ -133,9 +133,9 @@ const Profile = () => {
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
     const [isGiftingOpen, setIsGiftingOpen] = useState(false);
     const [profileData, setProfileData] = useState({
-        username: user.username || user.email?.split('@')[0],
-        bio: user.bio || '',
-        photo: user.photoUrl || null
+        username: user?.username || user?.email?.split('@')[0] || 'Node_Pilot',
+        bio: user?.bio || '',
+        photo: user?.photoUrl || null
     });
     const [credits, setCredits] = useState(100); // Mock credits for design
     const [isFollowing, setIsFollowing] = useState(false);
@@ -150,7 +150,7 @@ const Profile = () => {
 
     useEffect(() => {
       const getPosts = async () => {
-        if (user) {
+        if (user?.id) {
           const allPosts = await fetchSocialPosts();
           const normalised = allPosts.map(p => ({
             ...p,
