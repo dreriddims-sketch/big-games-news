@@ -1,14 +1,62 @@
 import React, { useState, useEffect } from 'react';
-import { User, Video, ShieldAlert, Trash2, CheckCircle } from 'lucide-react';
+import { User, Video, ShieldAlert, Trash2, CheckCircle, Play, X, Eye } from 'lucide-react';
 import { mockDB, saveToMockSocialPosts, saveToMockUsers } from '../../lib/supabase';
+
+const VideoPreview = ({ post, onClose }) => (
+  <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4" onClick={onClose}>
+    <div className="relative max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+      <button onClick={onClose} className="absolute -top-12 right-0 text-white/60 hover:text-white flex items-center gap-2 font-black uppercase text-xs tracking-widest">
+        <X size={16} /> Close Preview
+      </button>
+      <div className="rounded-3xl overflow-hidden bg-white/5 border border-white/10 shadow-2xl aspect-[9/16]">
+        {post.videoUrl.includes('youtube.com') || post.videoUrl.includes('youtu.be') ? (
+          <iframe
+            src={post.videoUrl.replace('watch?v=', 'embed/') + '?autoplay=1&mute=0'}
+            className="w-full h-full"
+            frameBorder="0"
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+          />
+        ) : post.videoUrl.startsWith('blob:') ? (
+          <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 space-y-4 bg-black/60">
+            <div className="w-16 h-16 rounded-2xl bg-orange-500/20 flex items-center justify-center text-orange-400">
+              <Video size={32} />
+            </div>
+            <div className="space-y-2">
+              <p className="font-black uppercase text-white text-sm">Local File Upload</p>
+              <p className="text-text-secondary text-xs leading-relaxed">
+                This video was uploaded from the user's device. Blob URLs are session-scoped and cannot be previewed from the admin panel.
+              </p>
+              <p className="text-orange-400 text-xs font-black uppercase tracking-widest mt-2">
+                File: {post.fileName || 'Unnamed video'}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <video src={post.videoUrl} className="w-full h-full object-cover" controls autoPlay />
+        )}
+      </div>
+      <div className="mt-4 glass rounded-2xl p-4 border-white/10 space-y-2">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-black text-xs">
+            {(post.username || 'U').charAt(0)}
+          </div>
+          <span className="font-black text-white text-sm">@{post.username}</span>
+          <span className="text-text-secondary text-xs ml-auto">{new Date(post.created_at).toLocaleDateString()}</span>
+        </div>
+        <p className="text-sm text-white/80 italic leading-relaxed">"{post.description}"</p>
+      </div>
+    </div>
+  </div>
+);
 
 const UserModeration = () => {
   const [users, setUsers] = useState([]);
   const [posts, setPosts] = useState([]);
-  const [activeTab, setActiveTab] = useState('pending'); // pending, users, all
+  const [activeTab, setActiveTab] = useState('pending');
+  const [previewPost, setPreviewPost] = useState(null);
 
   useEffect(() => {
-    // We get from mockDB initialized states
     const lsUsers = JSON.parse(localStorage.getItem('bg_users') || '[]');
     setUsers(lsUsers.length > 0 ? lsUsers : mockDB.users);
 
@@ -26,14 +74,13 @@ const UserModeration = () => {
     const updated = posts.filter(p => p.id !== id);
     setPosts(updated);
     saveToMockSocialPosts(updated);
+    if (previewPost?.id === id) setPreviewPost(null);
   };
 
   const handleDeleteUser = (id) => {
     const updatedUsers = users.filter(u => u.id !== id);
     setUsers(updatedUsers);
     saveToMockUsers(updatedUsers);
-    
-    // Cascade delete their posts
     const updatedPosts = posts.filter(p => p.userId !== id);
     setPosts(updatedPosts);
     saveToMockSocialPosts(updatedPosts);
@@ -42,75 +89,144 @@ const UserModeration = () => {
   const pendingPosts = posts.filter(p => p.status === 'pending');
   const approvedPosts = posts.filter(p => p.status === 'approved');
 
-  return (
-    <div className="space-y-12">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-           <h2 className="text-3xl font-black uppercase tracking-tighter italic">Network Citizens & Moderation</h2>
-           <p className="text-base text-text-secondary font-medium pl-1">Monitor, approve, and delete user-submitted transmissions.</p>
+  const PostCard = ({ post, showApprove = false }) => (
+    <div className="premium-card p-0 flex flex-col bg-white/5 overflow-hidden border-white/10 hover:border-primary/20 transition-all">
+      {/* Video Thumbnail / Preview Area */}
+      <div
+        className="relative aspect-[9/16] max-h-64 bg-black/60 cursor-pointer group flex items-center justify-center"
+        onClick={() => setPreviewPost(post)}
+      >
+        {post.videoUrl.startsWith('blob:') ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 space-y-2">
+            <div className="w-12 h-12 rounded-2xl bg-orange-500/20 flex items-center justify-center text-orange-400">
+              <Video size={24} />
+            </div>
+            <p className="text-orange-400 font-black uppercase text-[9px] tracking-widest">Local File</p>
+            {post.fileName && <p className="text-white/30 text-[9px] break-all">{post.fileName}</p>}
+          </div>
+        ) : post.videoUrl.includes('youtube.com') || post.videoUrl.includes('youtu.be') ? (
+          <div className="absolute inset-0">
+            <img
+              src={`https://img.youtube.com/vi/${post.videoUrl.split('v=')[1]?.split('&')[0] || post.videoUrl.split('/').pop()}/mqdefault.jpg`}
+              className="w-full h-full object-cover brightness-[0.6]"
+              onError={(e) => { e.target.style.display = 'none'; }}
+              alt="thumbnail"
+            />
+          </div>
+        ) : (
+          <video src={post.videoUrl} className="absolute inset-0 w-full h-full object-cover brightness-[0.6]" preload="metadata" />
+        )}
+
+        {/* Play overlay */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+          <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-2xl shadow-primary/40">
+            <Play size={20} className="text-black ml-1" fill="black" />
+          </div>
+        </div>
+
+        {showApprove ? (
+          <div className="absolute top-3 left-3 bg-emerald-500/20 text-emerald-400 text-[8px] px-2 py-1 rounded-full border border-emerald-500/20 uppercase font-black">
+            ✓ Approved
+          </div>
+        ) : (
+          <div className="absolute top-3 left-3 bg-orange-500/20 text-orange-400 text-[8px] px-2 py-1 rounded-full border border-orange-500/30 uppercase font-black">
+            ⏳ Pending
+          </div>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="p-5 space-y-4 flex-1 flex flex-col">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-black text-xs">
+            {(post.username || 'U').charAt(0)}
+          </div>
+          <div>
+            <div className="font-black text-white text-sm">@{post.username || 'user'}</div>
+            <div className="text-[9px] text-text-secondary uppercase tracking-widest">{new Date(post.created_at).toLocaleDateString()}</div>
+          </div>
+        </div>
+
+        <p className="text-xs text-white/70 italic leading-relaxed line-clamp-2 flex-1">"{post.description}"</p>
+
+        <div className="flex gap-2 mt-auto">
+          <button
+            onClick={() => setPreviewPost(post)}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-white/5 text-white/60 font-black uppercase text-[9px] tracking-widest hover:bg-white/10 transition-colors"
+          >
+            <Eye size={12} /> Preview
+          </button>
+          {showApprove && (
+            <button
+              onClick={() => handleApprove(post.id)}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-emerald-500/10 text-emerald-400 font-black uppercase text-[9px] tracking-widest hover:bg-emerald-500/20 transition-colors"
+            >
+              <CheckCircle size={12} /> Approve
+            </button>
+          )}
+          <button
+            onClick={() => handleDelete(post.id)}
+            className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-red-500/10 text-red-500 font-black uppercase text-[9px] tracking-widest hover:bg-red-500/20 transition-colors"
+          >
+            <Trash2 size={12} />
+          </button>
         </div>
       </div>
+    </div>
+  );
 
-      <div className="flex gap-4 border-b border-white/10 pb-4 overflow-x-auto">
-        <button 
+  return (
+    <div className="space-y-10">
+      {previewPost && <VideoPreview post={previewPost} onClose={() => setPreviewPost(null)} />}
+
+      <div className="space-y-1">
+        <h2 className="text-3xl font-black uppercase tracking-tighter italic">Network Citizens & Moderation</h2>
+        <p className="text-base text-text-secondary font-medium pl-1">Monitor, preview, approve, and delete user-submitted transmissions.</p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-3 border-b border-white/10 pb-4 overflow-x-auto">
+        <button
           onClick={() => setActiveTab('pending')}
-          className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all ${activeTab === 'pending' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+          className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all whitespace-nowrap ${activeTab === 'pending' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
         >
-           <ShieldAlert size={16} /> Pending Review ({pendingPosts.length})
+          <ShieldAlert size={16} /> Pending Review
+          {pendingPosts.length > 0 && (
+            <span className="bg-orange-500 text-black text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-black">
+              {pendingPosts.length}
+            </span>
+          )}
         </button>
-        <button 
+        <button
           onClick={() => setActiveTab('users')}
-          className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all ${activeTab === 'users' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+          className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all whitespace-nowrap ${activeTab === 'users' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
         >
-           <User size={16} /> Registered Users ({users.length})
+          <User size={16} /> Registered Users ({users.length})
         </button>
-        <button 
+        <button
           onClick={() => setActiveTab('all')}
-          className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all ${activeTab === 'all' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+          className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all whitespace-nowrap ${activeTab === 'all' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
         >
-           <Video size={16} /> Approved Content ({approvedPosts.length})
+          <Video size={16} /> Approved Content ({approvedPosts.length})
         </button>
       </div>
 
+      {/* Pending Videos */}
       {activeTab === 'pending' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {pendingPosts.length === 0 ? (
             <div className="col-span-full text-center py-20 text-text-secondary font-black uppercase tracking-widest text-sm bg-white/5 rounded-3xl">
               No content pending security review.
             </div>
           ) : (
             pendingPosts.map(post => (
-              <div key={post.id} className="premium-card p-6 space-y-6 flex flex-col bg-white/5 border-orange-500/20">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center font-black">{post.username?.charAt(0)}</div>
-                     <div>
-                       <div className="font-black uppercase tracking-tight text-white">@{post.username}</div>
-                       <div className="text-[10px] text-text-secondary uppercase tracking-widest">{new Date(post.created_at).toLocaleDateString()}</div>
-                     </div>
-                  </div>
-                  <div className="bg-orange-500/20 text-orange-400 text-[10px] px-3 py-1 rounded-full border border-orange-500/30 uppercase font-black">
-                    Pending
-                  </div>
-                </div>
-                
-                <p className="text-sm text-white/80 line-clamp-2 italic">"{post.description}"</p>
-                <div className="bg-black/50 p-3 rounded-xl break-all text-[10px] font-mono text-white/40 mb-4">{post.videoUrl}</div>
-                
-                <div className="grid grid-cols-2 gap-4 mt-auto">
-                   <button onClick={() => handleDelete(post.id)} className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-red-500/10 text-red-500 font-black uppercase text-[10px] tracking-widest hover:bg-red-500/20">
-                     <Trash2 size={16} /> Reject
-                   </button>
-                   <button onClick={() => handleApprove(post.id)} className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-500/10 text-emerald-400 font-black uppercase text-[10px] tracking-widest hover:bg-emerald-500/20">
-                     <CheckCircle size={16} /> Approve
-                   </button>
-                </div>
-              </div>
+              <PostCard key={post.id} post={post} showApprove={true} />
             ))
           )}
         </div>
       )}
 
+      {/* Users */}
       {activeTab === 'users' && (
         <div className="premium-card overflow-hidden !rounded-3xl border-white/5">
           <table className="w-full text-left border-collapse">
@@ -127,7 +243,9 @@ const UserModeration = () => {
                 <tr key={u.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
                   <td className="p-6">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex justify-center flex-col items-center font-black uppercase">{u.username?.charAt(0) || u.email?.charAt(0)}</div>
+                      <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex justify-center flex-col items-center font-black uppercase">
+                        {u.username?.charAt(0) || u.email?.charAt(0)}
+                      </div>
                       <div>
                         <div className="font-black text-white text-sm">@{u.username || 'unknown'}</div>
                         <div className="text-[10px] text-text-secondary">{u.created_at ? new Date(u.created_at).toLocaleDateString() : 'Legacy'}</div>
@@ -146,7 +264,7 @@ const UserModeration = () => {
                   <td className="p-6">
                     {u.role !== 'admin' && (
                       <button onClick={() => handleDeleteUser(u.id)} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/20 transition-colors" title="Delete Account & Content">
-                         <Trash2 size={16} />
+                        <Trash2 size={16} />
                       </button>
                     )}
                   </td>
@@ -157,29 +275,18 @@ const UserModeration = () => {
         </div>
       )}
 
+      {/* Approved Content */}
       {activeTab === 'all' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-           {approvedPosts.length === 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {approvedPosts.length === 0 ? (
             <div className="col-span-full text-center py-20 text-text-secondary font-black uppercase tracking-widest text-sm bg-white/5 rounded-3xl">
               No approved content available.
             </div>
           ) : (
             approvedPosts.map(post => (
-              <div key={post.id} className="premium-card p-6 space-y-4 flex flex-col bg-white/5 border-white/10">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                     <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs">{(post.username || 'U').charAt(0)}</div>
-                     <div className="font-black uppercase tracking-tight text-white text-xs">@{post.username || 'user'}</div>
-                  </div>
-                  <button onClick={() => handleDelete(post.id)} className="p-2 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/20 transition-colors">
-                     <Trash2 size={14} />
-                  </button>
-                </div>
-                <p className="text-sm text-white/80 line-clamp-2 italic">"{post.description}"</p>
-                <div className="text-[10px] text-text-secondary uppercase tracking-widest">{new Date(post.created_at).toLocaleDateString()}</div>
-              </div>
+              <PostCard key={post.id} post={post} showApprove={false} />
             ))
-           )}
+          )}
         </div>
       )}
     </div>
