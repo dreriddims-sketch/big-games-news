@@ -80,9 +80,9 @@ const PodcastGrid = () => {
           </div>
           <h2 className="text-5xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter italic leading-none transition-colors hover:text-primary">Podcasts</h2>
         </div>
-        <button className="btn-secondary group flex items-center justify-center gap-4 w-full md:w-auto">
+        <Link to="/archive" className="btn-secondary group flex items-center justify-center gap-4 w-full md:w-auto text-[11px] font-black uppercase tracking-[0.2em] py-3 px-8 rounded-full">
           Access Archive <ChevronRight size={18} className="group-hover:translate-x-2 transition-transform" />
-        </button>
+        </Link>
       </motion.div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
@@ -96,9 +96,10 @@ const PodcastGrid = () => {
             className="h-full"
           >
             <div 
-              className="premium-card group p-8 md:p-12 h-full flex flex-col items-center text-center gap-8 md:gap-12 rounded-3xl"
+              onClick={() => !editMode && alert(`Streaming Audio Log: ${podcast.title}\nID: ${Math.random().toString(36).substring(7).toUpperCase()}`)}
+              className={`premium-card group p-8 md:p-12 h-full flex flex-col items-center text-center gap-8 md:gap-12 rounded-3xl ${!editMode ? 'cursor-pointer hover:bg-white/10' : ''}`}
             >
-            <div className={`relative ${editMode ? 'cursor-pointer' : ''}`} onClick={() => handleImageClick(podcast.id)}>
+            <div className={`relative ${editMode ? 'cursor-pointer' : ''}`} onClick={() => editMode && handleImageClick(podcast.id)}>
               <div className="w-44 h-44 rounded-full bg-gradient-to-br from-primary/5 to-white/5 flex items-center justify-center group-hover:scale-105 transition-transform duration-1000 border border-white/5 shadow-inner overflow-hidden relative">
                 
                 {podcast.image_url && (
@@ -127,7 +128,7 @@ const PodcastGrid = () => {
                 contentEditable={editMode}
                 onBlur={(e) => handleInlineEdit(podcast.id, 'title', e.target.innerText)}
                 suppressContentEditableWarning={true}
-                className={`text-2xl font-black text-white uppercase tracking-tight italic transition-colors group-hover:text-primary ${editMode ? 'bg-primary/5 rounded-xl px-2 py-4 outline-none ring-1 ring-primary/20' : ''}`}
+                className={`text-2xl font-black text-white uppercase tracking-tight italic transition-colors group-hover:text-primary ${editMode ? 'bg-primary/5 rounded-xl px-2 py-4 outline-none ring-1 ring-primary/20 cursor-text' : ''}`}
               >
                 {podcast.title}
               </h3>

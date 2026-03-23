@@ -30,3 +30,8 @@ src/.working-app-hide
 build
 out
 .vercel
+
+# Environment Variables - NEVER commit these
+.env
+.env.local
+.env.production

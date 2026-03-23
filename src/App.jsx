@@ -30,6 +30,8 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   return children;
 };
 
+import LegalPage from './pages/LegalPage';
+
 function AppRoutes() {
   const { isAdmin } = useAuth();
 
@@ -49,6 +51,12 @@ function AppRoutes() {
         <Route path="/signin" element={<UserLogin />} />
         <Route path="/social" element={<SocialDashboard />} />
         <Route path="/profile" element={<Profile />} />
+        
+        {/* Legal & Corporate Pages */}
+        <Route path="/privacy" element={<LegalPage type="privacy" />} />
+        <Route path="/terms" element={<LegalPage type="terms" />} />
+        <Route path="/careers" element={<LegalPage type="careers" />} />
+        <Route path="/press" element={<LegalPage type="press" />} />
         
         {/* Protected Dashboard Routes */}
         <Route 
