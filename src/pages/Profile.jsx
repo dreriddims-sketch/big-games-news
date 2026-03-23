@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchSocialPosts, deletePost, updateSocialPost } from '../lib/supabase';
-import { Video, Heart, LogOut, ShieldAlert, Trash2, Edit2, Check, Upload, Shield, Gift, Zap, Share2, X as Close, Play, Volume2, TrendingUp } from 'lucide-react';
+import { Video, Heart, LogOut, ShieldAlert, Trash2, Edit2, Check, Upload, Shield, Gift, Zap, Share2, X as Close, Play, Volume2, TrendingUp, Users } from 'lucide-react';
 import UploadModal from '../components/UploadModal';
 
 const VideoModal = ({ post, isOpen, onClose, onDelete }) => {
@@ -132,6 +132,7 @@ const Profile = () => {
     const [selectedPost, setSelectedPost] = useState(null);
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
     const [isGiftingOpen, setIsGiftingOpen] = useState(false);
+    const [editValue, setEditValue] = useState('');
     const [profileData, setProfileData] = useState({
         username: user?.username || user?.email?.split('@')[0] || 'Node_Pilot',
         bio: user?.bio || '',
