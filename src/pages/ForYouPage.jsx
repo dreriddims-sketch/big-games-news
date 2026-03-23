@@ -1,7 +1,8 @@
 /* src/pages/ForYouPage.jsx - Public-facing For You feed */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Share2, Gift, Play, Zap, UserPlus, MessageCircle, X } from 'lucide-react';
+import { Heart, Share2, Gift, Play, Zap, UserPlus, MessageCircle, X, Volume2, VolumeX } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { fetchSocialPosts } from '../lib/supabase';
 
@@ -70,7 +71,17 @@ const GiftPanel = ({ post, onClose }) => {
 const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, likeCount, isMuted, onToggleMute }) => {
   const videoRef = React.useRef(null);
   const [isInView, setIsInView] = React.useState(false);
+  const [showIcon, setShowIcon] = React.useState(false);
   const isActive = activePostId === post.id;
+
+  React.useEffect(() => {
+    // When isMuted changes, show the icon briefly if this is the active post
+    if (isActive) {
+      setShowIcon(true);
+      const timer = setTimeout(() => setShowIcon(false), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [isMuted, isActive]);
 
   React.useEffect(() => {
     const observer = new IntersectionObserver(
@@ -90,10 +101,7 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
       const video = videoRef.current.querySelector('video');
       if (video) {
         if (isActive && isInView) {
-          video.play().catch(() => {
-            // If autoplay fails because of sound, we might need to stay muted
-            console.warn('Autoplay failed, keeping muted');
-          });
+          video.play().catch(() => {});
         } else {
           video.pause();
         }
@@ -104,10 +112,12 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
   return (
     <div 
       ref={videoRef} 
-      className="h-full w-full snap-start relative bg-black flex items-center justify-center overflow-hidden cursor-pointer"
-      onClick={onToggleMute}
+      className="h-full w-full snap-start relative bg-black flex items-center justify-center overflow-hidden cursor-pointer touch-pan-y"
+      onClick={() => {
+        onToggleMute();
+      }}
     >
-      <div className="relative w-full h-full overflow-hidden bg-black shadow-none border-none">
+      <div className="relative w-full h-full overflow-hidden bg-black shadow-none border-none pointer-events-none">
         
         {/* Full-screen video content */}
         {(isInView || isActive) ? (
@@ -126,6 +136,7 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
               loop 
               muted={isMuted} 
               playsInline 
+              webkit-playsinline="true"
               preload={isActive ? "auto" : "metadata"}
               autoPlay={isActive}
             />
@@ -136,12 +147,22 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
           </div>
         )}
 
-        {/* Global Mute Toggle indicator */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none opacity-0 hover:opacity-100 transition-opacity">
-           <div className="bg-black/40 backdrop-blur-md p-4 rounded-full border border-white/10 text-white">
-             {isMuted ? <MessageCircle size={32} className="opacity-40" /> : <Play size={32} />}
-           </div>
-        </div>
+        {/* Visual feedback for Mute/Unmute - TikTok Style */}
+        <AnimatePresence>
+           {showIcon && (
+             <motion.div 
+               key="feedback"
+               initial={{ scale: 0.5, opacity: 0 }}
+               animate={{ scale: 1, opacity: 1 }}
+               exit={{ scale: 1.2, opacity: 0 }}
+               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none"
+             >
+               <div className="bg-black/60 backdrop-blur-3xl p-10 rounded-full border border-white/20 text-white shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+                 {isMuted ? <VolumeX size={64} className="text-white/80" /> : <Volume2 size={64} className="text-primary" />}
+               </div>
+             </motion.div>
+           )}
+        </AnimatePresence>
 
         {/* Gradient overlay - lighter to let video shine */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none" />
