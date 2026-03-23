@@ -15,6 +15,7 @@ import SignUp from './pages/SignUp';
 import UserLogin from './pages/UserLogin';
 import SocialDashboard from './pages/SocialDashboard';
 import Profile from './pages/Profile';
+import LegalPage from './pages/LegalPage';
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { pinVerified, isAdmin } = useAuth();
@@ -30,11 +31,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   return children;
 };
 
-import LegalPage from './pages/LegalPage';
-
 function AppRoutes() {
-  const { isAdmin } = useAuth();
-
   return (
     <>
       <Navbar />
