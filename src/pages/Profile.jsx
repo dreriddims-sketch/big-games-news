@@ -2,11 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchSocialPosts, deletePost } from '../lib/supabase';
-import { Video, Heart, ShieldAlert, Trash2, Edit2, Upload, Shield, Gift, Zap, Share2, X as Close, Play, TrendingUp, Users } from 'lucide-react';
+import { fetchSocialPosts, deletePost, incrementViews } from '../lib/supabase';
+import { Video, Heart, ShieldAlert, Trash2, Edit2, Upload, Shield, Gift, Zap, Share2, X as Close, Play, TrendingUp, Users, Eye } from 'lucide-react';
 import UploadModal from '../components/UploadModal';
 
 const VideoModal = ({ post, isOpen, onClose, onDelete }) => {
+  useEffect(() => {
+    if (isOpen && post) {
+      incrementViews(post.id);
+    }
+  }, [isOpen, post]);
+
   if (!isOpen || !post) return null;
 
   return (
@@ -48,6 +54,12 @@ const VideoModal = ({ post, isOpen, onClose, onDelete }) => {
                  <Heart size={24} className="group-hover:text-primary transition-colors" />
                </div>
                <span className="text-[10px] font-black">{post.likes || 0}</span>
+             </div>
+             <div className="flex flex-col items-center gap-1 group">
+               <div className="p-4 bg-black/40 backdrop-blur-xl rounded-full text-white border border-white/10 shadow-lg">
+                 <Eye size={24} className="group-hover:text-primary transition-colors" />
+               </div>
+               <span className="text-[10px] font-black uppercase text-white/60">{post.views || 0}</span>
              </div>
              <div className="flex flex-col items-center gap-1 group">
                <div className="p-4 bg-black/40 backdrop-blur-xl rounded-full text-white border border-white/10 shadow-lg">
@@ -334,8 +346,13 @@ const Profile = () => {
                               <video src={post.videoUrl} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                            )}
                            
-                           <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-[10px] font-black drop-shadow-lg">
-                              <Play size={10} fill="currentColor" /> {post.likes || 0}
+                           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-[10px] font-black drop-shadow-lg z-10">
+                              <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg border border-white/5">
+                                 <Play size={10} fill="currentColor" /> {post.views || 0}
+                              </div>
+                              <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg border border-white/5">
+                                 <Heart size={10} fill="currentColor" className="text-red-400" /> {post.likes || 0}
+                              </div>
                            </div>
 
                            {post.status === 'pending' && (

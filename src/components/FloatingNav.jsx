@@ -39,10 +39,10 @@ const FloatingNav = () => {
                         <span className="text-[7px] font-black uppercase tracking-widest">News</span>
                     </Link>
 
-                    {/* GIFTS / SOCIAL */}
-                    <Link to="/social" className={navItemStyle('/social')}>
+                    {/* GIFTS */}
+                    <Link to="/gifts" className={navItemStyle('/gifts')}>
                         <Gift size={18} />
-                        <span className="text-[7px] font-black uppercase tracking-widest">Gifts</span>
+                        <span className="text-[7px] font-black uppercase tracking-widest">Gifts Hub</span>
                     </Link>
 
                     {/* POST BUTTON (CENTER) */}

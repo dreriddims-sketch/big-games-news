@@ -90,10 +90,36 @@ export const fetchSocialPosts = async (userId = null) => {
     videoUrl: post.video_url,
     fileName: post.file_name,
     avatarUrl: post.avatar_url,
+    tags: post.tags || [], // Ensure tags is always an array
+    views: post.views || 0,
     ai_moderation_score: post.ai_risk_score // Bridge the naming gap
   }));
 
   return mappedData;
+};
+
+/**
+ * Increment the view count for a specific post.
+ */
+export const incrementViews = async (id) => {
+  if (!isSupabaseConfigured) {
+    const lsPosts = JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
+    const updated = lsPosts.map(p => String(p.id) === String(id) ? { ...p, views: (p.views || 0) + 1 } : p);
+    localStorage.setItem('bg_social_posts', JSON.stringify(updated));
+    return { error: null };
+  }
+
+  // Use defensive update in case column doesn't exist
+  try {
+    const { error } = await supabase.rpc('increment_post_views', { post_id: id });
+    if (error) {
+      // Fallback to simple increment if RPC fails
+      const { data: current } = await supabase.from('social_posts').select('views').eq('id', id).single();
+      await supabase.from('social_posts').update({ views: (current?.views || 0) + 1 }).eq('id', id);
+    }
+  } catch (err) {
+    console.error('[DB] incrementViews error:', err);
+  }
 };
 
 /**
@@ -115,9 +141,11 @@ export const insertSocialPost = async (post) => {
       video_url: post.videoUrl,
       avatar_url: post.avatarUrl || null,
       description: post.description,
+      tags: post.tags || [],
       status: post.status || 'approved', // Respect status or default to approved
       likes: post.likes || 0,
       comments: post.comments || 0,
+      views: post.views || 0,
       tab: post.tab || 'foryou',
       file_name: post.fileName || null,
       created_at: post.created_at || new Date().toISOString(),
@@ -197,6 +225,27 @@ export const updateSocialPost = async (id, updates) => {
     .eq('id', id);
   if (error) console.error('[DB] updateSocialPost error:', error.message);
   return { data, error };
+};
+
+/**
+ * Fetch all news articles from Supabase (or localStorage fallback).
+ * Table: posts
+ */
+export const fetchArticles = async () => {
+  if (!isSupabaseConfigured) {
+    return JSON.parse(localStorage.getItem('bg_posts') || '[]');
+  }
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('status', 'published')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('[DB] fetchArticles error:', error.message);
+    return JSON.parse(localStorage.getItem('bg_posts') || '[]');
+  }
+  return data || [];
 };
 
 /**

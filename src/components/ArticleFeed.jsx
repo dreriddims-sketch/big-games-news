@@ -1,8 +1,8 @@
 /* src/components/ArticleFeed.jsx */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Share2, Link2, ExternalLink, Calendar, User, ArrowRight } from 'lucide-react';
-import { mockDB, dbEvents, saveToMockPosts } from '../lib/supabase';
+import { Share2, Link2, ExternalLink, Calendar, User, ArrowRight, Eye } from 'lucide-react';
+import { mockDB, dbEvents, saveToMockPosts, incrementViews } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 
@@ -141,7 +141,10 @@ const ArticleFeed = () => {
                 <Link to={`/article/${post.slug}`} className="flex items-center gap-3 text-white font-black uppercase text-[11px] tracking-widest group/btn hover:text-primary transition-colors">
                   Read Transmission <ArrowRight size={16} className="group-hover/btn:translate-x-2 transition-transform" />
                 </Link>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4">
+                   <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-white/30">
+                      <Eye size={12} className="text-primary" /> {post.views || 0}
+                   </div>
                    <button 
                      onClick={() => {
                         navigator.clipboard.writeText(`${window.location.origin}/article/${post.slug}`);

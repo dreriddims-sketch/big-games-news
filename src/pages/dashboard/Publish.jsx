@@ -18,17 +18,20 @@ const Publish = () => {
   const [title, setTitle] = useState(existingPost?.title || '');
   const [content, setContent] = useState(existingPost?.content || '');
   const [banner, setBanner] = useState(existingPost?.banner_url || '');
+  const [tags, setTags] = useState(existingPost?.tags?.map(t => `#${t}`).join(' ') || '');
   const [preview, setPreview] = useState(false);
 
   const handleSave = () => {
     if (!title) return;
+    
+    const tagArray = tags.split(' ').filter(t => t.startsWith('#')).map(t => t.replace('#', '').toLowerCase());
     
     let updatedPosts;
     
     if (existingPost) {
       updatedPosts = mockDB.posts.map(p => 
         p.id.toString() === editId 
-          ? { ...p, title, content, banner_url: banner || p.banner_url || '/hero.png' } 
+          ? { ...p, title, content, tags: tagArray, banner_url: banner || p.banner_url || '/hero.png' } 
           : p
       );
     } else {
@@ -36,6 +39,7 @@ const Publish = () => {
         id: Date.now(),
         title,
         content,
+        tags: tagArray,
         banner_url: banner || '/hero.png',
         created_at: new Date().toISOString(),
         order_index: 0,
@@ -125,6 +129,19 @@ const Publish = () => {
                           placeholder="https://images.unsplash.com/..."
                           className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-primary transition-all text-xs font-bold"
                         />
+                     </div>
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-[10px] text-text-secondary uppercase font-black tracking-widest pl-1">Story Tags (#label #tag)</label>
+                     <div className="relative group">
+                         <PlusCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors" size={20} />
+                         <input
+                           type="text"
+                           value={tags}
+                           onChange={(e) => setTags(e.target.value)}
+                           placeholder="#gaming #announcement #beta"
+                           className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-primary transition-all text-xs font-bold"
+                         />
                      </div>
                   </div>
                   

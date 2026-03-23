@@ -17,6 +17,7 @@ import SocialDashboard from './pages/SocialDashboard';
 import Profile from './pages/Profile';
 import LegalPage from './pages/LegalPage';
 import ForYouPage from './pages/ForYouPage';
+import GiftsPage from './pages/GiftsPage';
 import LowCreditAlert from './components/LowCreditAlert';
 import FloatingNav from './components/FloatingNav';
 
@@ -77,6 +78,7 @@ function AppRoutes() {
           <Route path="/news" element={<NewsPage />} />
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/foryou" element={<ForYouPage />} />
+          <Route path="/gifts" element={<GiftsPage />} />
           <Route path="/archive" element={<ArchivePage />} />
           <Route path="/signals" element={<SignalsPage />} />
           <Route path="/article/:slug" element={<ArticlePage />} />
