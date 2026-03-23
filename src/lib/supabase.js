@@ -139,21 +139,36 @@ export const updatePostStatus = async (id, status, aiScore = null) => {
   // Use Number for BigInt/Serial columns if possible, but handle UUIDs as strings
   const lookupId = !isNaN(id) && typeof id !== 'boolean' ? Number(id) : id;
 
-  const { data, error, count } = await supabase
+  // 🛡️ DYNAMIC PAYLOAD: Only include ai_moderation_score if it's actually provided
+  // This prevents failures if the column doesn't exist in the database schema yet.
+  const updates = { status };
+  if (aiScore !== null && aiScore !== undefined) {
+    updates.ai_moderation_score = aiScore;
+  }
+
+  const { data, error } = await supabase
     .from('social_posts')
-    .update({ status, ai_moderation_score: aiScore })
+    .update(updates)
     .eq('id', lookupId)
     .select();
 
   if (error) {
     console.error('[DB] updatePostStatus error:', error.message);
+    // If the error confirms the missing column, retry without it as a failsafe
+    if (error.message?.includes('ai_moderation_score')) {
+      return supabase
+        .from('social_posts')
+        .update({ status })
+        .eq('id', lookupId)
+        .select();
+    }
   } else if (!data || data.length === 0) {
     console.warn('[DB] updatePostStatus: Success, but 0 rows matched ID:', lookupId);
     // Try string lookup as fallback if number failed
     if (typeof lookupId === 'number') {
       const retry = await supabase
         .from('social_posts')
-        .update({ status, ai_moderation_score: aiScore })
+        .update(updates)
         .eq('id', String(lookupId))
         .select();
       return retry;
