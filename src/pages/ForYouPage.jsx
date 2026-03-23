@@ -230,7 +230,7 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
   );
 });
 
-const ArticlePost = React.memo(({ post, onTagClick }) => {
+const ArticlePost = React.memo(({ post, isLiked, onLike, onGift, likeCount, onTagClick }) => {
   return (
     <div className="h-full w-full snap-start relative bg-black flex items-center justify-center overflow-hidden">
       {/* Background Banner */}
@@ -276,24 +276,47 @@ const ArticlePost = React.memo(({ post, onTagClick }) => {
 
           <div className="pt-8 flex flex-wrap items-center gap-6">
             <Link 
-              to={`/article/${post.slug || post.id}`}
+              to={`/feed/${post.slug || post.id}`}
               className="px-10 py-5 bg-primary text-black text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-white transition-all flex items-center gap-3 group shadow-[0_10px_40px_rgba(255,153,0,0.2)]"
             >
               Access Data Stream <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
             </Link>
-            
-            <button 
-              onClick={() => navigator.share?.({ title: post.title, url: window.location.origin + '/article/' + (post.slug || post.id) })}
-              className="p-5 rounded-2xl bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20 transition-all shadow-2xl backdrop-blur-xl group"
-            >
-              <Share2 size={22} className="group-hover:scale-110 transition-transform" />
-            </button>
-            <div className="flex items-center gap-2 px-6 py-4 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-3xl shadow-2xl">
-              <Eye size={18} className="text-primary" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/40 italic">{post.views || 0} READS</span>
-            </div>
           </div>
         </motion.div>
+
+        {/* Article Sidebar Interactions */}
+        <div className="flex flex-col gap-6 items-center pb-32 pointer-events-auto">
+          <button onClick={(e) => { e.stopPropagation(); onLike(post.id); }} className="flex flex-col items-center gap-1 group">
+            <div className={`p-4 rounded-full backdrop-blur-2xl border transition-all group-active:scale-90 shadow-2xl ${isLiked ? 'bg-red-500/40 border-red-500/60' : 'bg-black/40 border-white/20'}`}>
+              <Heart size={24} className={`transition-colors ${isLiked ? 'text-red-400 fill-red-400' : 'text-white'}`} />
+            </div>
+            <span className="text-[10px] font-black text-white drop-shadow-lg uppercase tracking-widest">{likeCount || 0}</span>
+          </button>
+          
+          <div className="flex flex-col items-center gap-1 group">
+            <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 shadow-2xl group-hover:bg-white/10 group-active:scale-95 transition-all">
+              <Eye size={24} className="text-white/80 group-hover:text-primary transition-colors" />
+            </div>
+            <span className="text-[10px] font-black text-white/60 drop-shadow-lg uppercase tracking-widest leading-none">{post.views || 0}</span>
+          </div>
+
+          <button onClick={(e) => { e.stopPropagation(); onGift(post.id); }} className="flex flex-col items-center gap-1 group">
+            <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all group-active:scale-90 shadow-2xl">
+              <Gift size={24} className="text-white group-hover:text-primary transition-colors" />
+            </div>
+            <span className="text-[10px] font-black text-white/60 drop-shadow-lg uppercase tracking-widest leading-none mt-1 text-center">GIFT</span>
+          </button>
+
+          <button 
+            onClick={() => navigator.share?.({ title: post.title, url: window.location.origin + '/feed/' + (post.slug || post.id) })}
+            className="flex flex-col items-center gap-1 group"
+          >
+            <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-white/10 transition-all group-active:scale-90 shadow-2xl">
+              <Share2 size={24} className="text-white group-hover:text-primary transition-colors" />
+            </div>
+            <span className="text-[10px] font-black text-white/60 drop-shadow-lg uppercase tracking-widest leading-none mt-1 text-center">SHARE</span>
+          </button>
+        </div>
       </div>
       
       {/* Decorative scanline effect */}
@@ -357,6 +380,8 @@ const ForYouPage = ({ mode = 'mixed' }) => {
       
       const counts = {};
       normalisedSocial.forEach(p => { counts[p.id] = p.likes || 0; });
+      normalisedArticles.forEach(p => { counts[p.id] = (p.likes || 0); });
+      
       const bumps = JSON.parse(localStorage.getItem('bg_like_bumps') || '{}');
       Object.keys(bumps).forEach(id => {
         if (counts[id] !== undefined) counts[id] = (counts[id]) + bumps[id];
@@ -449,6 +474,10 @@ const ForYouPage = ({ mode = 'mixed' }) => {
                 ) : (
                   <ArticlePost 
                     post={item} 
+                    isLiked={isPostLiked(item.id)}
+                    onLike={handleLike}
+                    onGift={(id) => setGiftingPost(id)}
+                    likeCount={likeCounts[item.id]}
                     onTagClick={setFilterTag}
                   />
                 )}
