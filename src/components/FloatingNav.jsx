@@ -31,7 +31,11 @@ const FloatingNav = () => {
     return (
         <>
             <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] w-full max-w-sm px-4 pointer-events-none">
-                <div className="glass rounded-[2.5rem] p-1.5 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 pointer-events-auto backdrop-blur-3xl bg-black/60">
+                <div className="glass rounded-[2.5rem] p-1.5 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 pointer-events-auto backdrop-blur-3xl bg-black/60 relative overflow-hidden">
+                    {/* VERSION SYNC BADGE */}
+                    <div className="absolute top-0 right-8 px-2 py-0.5 bg-primary/30 text-primary text-[6px] font-black uppercase tracking-tighter rounded-b-md border border-t-0 border-primary/20">
+                      v1.1 Active
+                    </div>
                     
                     {/* NEWS */}
                     <Link to="/feed" className={navItemStyle('/feed')}>

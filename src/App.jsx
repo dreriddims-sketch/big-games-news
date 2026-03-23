@@ -74,7 +74,8 @@ function AppRoutes() {
       <FloatingNav />
       <div className={isForYou ? "min-h-screen flex flex-col" : "pt-20 md:pt-24 min-h-screen flex flex-col"}>
         <Routes>
-          <Route path="/" element={<NewsPage />} />
+          <Route path="/" element={<ForYouPage />} />
+          <Route path="/home" element={<NewsPage />} />
           <Route path="/news" element={<NewsPage />} />
           <Route path="/feed/:slug?" element={<ForYouPage mode="news" />} />
           <Route path="/foryou" element={<ForYouPage />} />
