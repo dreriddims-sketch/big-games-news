@@ -67,7 +67,7 @@ const GiftPanel = ({ post, onClose }) => {
 };
 
 
-const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, likeCount }) => {
+const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, likeCount, isMuted, onToggleMute }) => {
   const videoRef = React.useRef(null);
   const [isInView, setIsInView] = React.useState(false);
   const isActive = activePostId === post.id;
@@ -82,7 +82,7 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
 
     if (videoRef.current) observer.observe(videoRef.current);
     return () => observer.disconnect();
-  }, [post.id]); // post.id dependency ensures fresh observer on component swap
+  }, [post.id]);
 
   // Play/Pause logic for native videos
   React.useEffect(() => {
@@ -90,7 +90,10 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
       const video = videoRef.current.querySelector('video');
       if (video) {
         if (isActive && isInView) {
-          video.play().catch(() => {});
+          video.play().catch(() => {
+            // If autoplay fails because of sound, we might need to stay muted
+            console.warn('Autoplay failed, keeping muted');
+          });
         } else {
           video.pause();
         }
@@ -99,14 +102,18 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
   }, [isActive, isInView, post.videoUrl]);
 
   return (
-    <div ref={videoRef} className="h-full w-full snap-start relative bg-black flex items-center justify-center overflow-hidden">
+    <div 
+      ref={videoRef} 
+      className="h-full w-full snap-start relative bg-black flex items-center justify-center overflow-hidden cursor-pointer"
+      onClick={onToggleMute}
+    >
       <div className="relative w-full h-full overflow-hidden bg-black shadow-none border-none">
         
         {/* Full-screen video content */}
         {(isInView || isActive) ? (
           post.videoUrl?.includes('youtube.com') || post.videoUrl?.includes('youtu.be') ? (
             <iframe
-              src={post.videoUrl.replace('watch?v=', 'embed/') + `?autoplay=${isActive ? 1 : 0}&mute=1&loop=1&controls=0&modestbranding=1&rel=0`}
+              src={post.videoUrl.replace('watch?v=', 'embed/') + `?autoplay=${isActive ? 1 : 0}&mute=${isMuted ? 1 : 0}&loop=1&controls=0&modestbranding=1&rel=0`}
               className="w-full h-full absolute inset-0 object-cover scale-[1.05]"
               frameBorder="0"
               allow="autoplay"
@@ -117,7 +124,7 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
               src={post.videoUrl} 
               className="w-full h-full object-cover" 
               loop 
-              muted 
+              muted={isMuted} 
               playsInline 
               preload={isActive ? "auto" : "metadata"}
               autoPlay={isActive}
@@ -129,12 +136,19 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
           </div>
         )}
 
+        {/* Global Mute Toggle indicator */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none opacity-0 hover:opacity-100 transition-opacity">
+           <div className="bg-black/40 backdrop-blur-md p-4 rounded-full border border-white/10 text-white">
+             {isMuted ? <MessageCircle size={32} className="opacity-40" /> : <Play size={32} />}
+           </div>
+        </div>
+
         {/* Gradient overlay - lighter to let video shine */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none" />
 
         {/* Bottom info - pinned to bottom of screen */}
         <div className="absolute bottom-0 left-0 right-0 p-8 pb-32 flex justify-between items-end">
-          <div className="space-y-3 max-w-[80%] pb-4">
+          <div className="space-y-3 max-w-[80%] pb-4 lg:pointer-events-auto pointer-events-none">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full border-2 border-primary/20 overflow-hidden bg-black flex items-center justify-center">
                 {post.avatarUrl || post.avatar_url ? (
@@ -146,7 +160,7 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
                 )}
               </div>
               <span className="font-black text-white text-lg drop-shadow-lg italic">@{post.username || 'user'}</span>
-              <button className="px-3 py-1 bg-white text-black font-black text-[9px] uppercase rounded-lg hover:bg-primary transition-all ml-2">Follow</button>
+              <button className="px-3 py-1 bg-white text-black font-black text-[9px] uppercase rounded-lg hover:bg-primary transition-all ml-2 pointer-events-auto">Follow</button>
             </div>
             {post.description && (
               <p className="text-white text-sm leading-relaxed drop-shadow-md italic line-clamp-2">"{post.description}"</p>
@@ -155,14 +169,14 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
           </div>
 
           <div className="flex flex-col gap-5 items-center pb-32 pointer-events-auto">
-            <button onClick={() => onLike(post.id)} className="flex flex-col items-center gap-1 group">
+            <button onClick={(e) => { e.stopPropagation(); onLike(post.id); }} className="flex flex-col items-center gap-1 group">
               <div className={`p-3 rounded-full backdrop-blur-2xl border transition-all group-active:scale-90 shadow-xl ${isLiked ? 'bg-red-500/40 border-red-500/60' : 'bg-black/40 border-white/20'}`}>
                 <Heart size={22} className={`transition-colors ${isLiked ? 'text-red-400 fill-red-400' : 'text-white'}`} />
               </div>
               <span className="text-[10px] font-black text-white drop-shadow-lg">{likeCount || 0}</span>
             </button>
 
-            <button onClick={() => onGift(post.id)} className="flex flex-col items-center gap-1 group">
+            <button onClick={(e) => { e.stopPropagation(); onGift(post.id); }} className="flex flex-col items-center gap-1 group">
               <div className="p-3 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all group-active:scale-90 shadow-xl">
                 <Gift size={22} className="text-white group-hover:text-primary transition-colors" />
               </div>
@@ -170,7 +184,7 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
             </button>
 
             <button
-              onClick={() => navigator.share?.({ url: window.location.href }) || navigator.clipboard?.writeText(window.location.href)}
+              onClick={(e) => { e.stopPropagation(); navigator.share?.({ url: window.location.href }) || navigator.clipboard?.writeText(window.location.href); }}
               className="flex flex-col items-center gap-1 group"
             >
               <div className="p-3 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-white/10 transition-all group-active:scale-90 shadow-xl">
@@ -191,6 +205,7 @@ const ForYouPage = () => {
   const [likeCounts, setLikeCounts] = useState({});
   const [giftingPost, setGiftingPost] = useState(null);
   const [activePostId, setActivePostId] = useState(null);
+  const [isMuted, setIsMuted] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -279,6 +294,8 @@ const ForYouPage = () => {
                 onGift={(id) => setGiftingPost(id)}
                 activePostId={activePostId}
                 likeCount={likeCounts[post.id]}
+                isMuted={isMuted}
+                onToggleMute={() => setIsMuted(prev => !prev)}
               />
               
               {giftingPost === post.id && (
