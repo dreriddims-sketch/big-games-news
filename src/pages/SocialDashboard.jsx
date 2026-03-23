@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Heart, MessageCircle, Share2, Target, Users, Globe, Building2, Upload, Film, Link2, X, Play } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Target, Users, Globe, Building2, Upload, Film, Link2, X, Play, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { mockDB, saveToMockSocialPosts } from '../lib/supabase';
+import { mockDB, saveToMockSocialPosts, uploadVideoToStorage } from '../lib/supabase';
 
 const TABS = [
   { id: 'foryou', label: 'For You', icon: Target },
@@ -16,12 +16,15 @@ const SocialDashboard = () => {
   const [activeTab, setActiveTab] = useState('foryou');
   const [posts, setPosts] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadMode, setUploadMode] = useState('file'); // 'file' | 'url'
+  const [uploadMode, setUploadMode] = useState('file');
   const [videoUrl, setVideoUrl] = useState('');
   const [videoFile, setVideoFile] = useState(null);
   const [videoBlobUrl, setVideoBlobUrl] = useState(null);
   const [description, setDescription] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadState, setUploadState] = useState('idle'); // 'idle' | 'uploading' | 'success' | 'error'
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState('');
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -52,19 +55,54 @@ const SocialDashboard = () => {
     const blobUrl = URL.createObjectURL(file);
     setVideoFile(file);
     setVideoBlobUrl(blobUrl);
+    setUploadState('idle');
+    setUploadError('');
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    const file = e.dataTransfer.files[0];
-    handleFileSelect(file);
+    handleFileSelect(e.dataTransfer.files[0]);
   };
 
-  const handlePost = (e) => {
+  const handlePost = async (e) => {
     e.preventDefault();
-    const finalUrl = uploadMode === 'file' ? videoBlobUrl : videoUrl;
-    if (!finalUrl) return;
+    setUploadError('');
+
+    let finalUrl = uploadMode === 'url' ? videoUrl : null;
+    let isBlob = false;
+    let fileName = videoFile?.name || null;
+
+    if (uploadMode === 'file') {
+      if (!videoFile) return;
+      setUploadState('uploading');
+      setUploadProgress(0);
+
+      // Simulate progress ticks while uploading
+      const progressTick = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 5, 90));
+      }, 300);
+
+      const result = await uploadVideoToStorage(videoFile);
+
+      clearInterval(progressTick);
+      setUploadProgress(100);
+
+      if (result.error && !result.url) {
+        setUploadState('error');
+        setUploadError(result.error);
+        return;
+      }
+
+      finalUrl = result.url;
+      isBlob = result.isBlobFallback;
+
+      if (result.isBlobFallback) {
+        setUploadError('Stored temporarily (Supabase bucket not configured). Video only visible this session.');
+      }
+
+      setUploadState('success');
+    }
 
     const newPost = {
       id: 'p' + Date.now(),
@@ -77,14 +115,16 @@ const SocialDashboard = () => {
       comments: 0,
       created_at: new Date().toISOString(),
       tab: activeTab,
-      isLocalFile: uploadMode === 'file',
-      fileName: videoFile?.name || null
+      isLocalFile: isBlob,
+      fileName,
     };
 
     const updated = [newPost, ...mockDB.socialPosts];
     saveToMockSocialPosts(updated);
     setPosts([newPost, ...posts]);
-    closeModal();
+
+    // Small delay so user sees success state
+    setTimeout(() => closeModal(), 1200);
   };
 
   const closeModal = () => {
@@ -93,6 +133,9 @@ const SocialDashboard = () => {
     setDescription('');
     setVideoFile(null);
     setUploadMode('file');
+    setUploadState('idle');
+    setUploadProgress(0);
+    setUploadError('');
   };
 
   return (
@@ -119,9 +162,8 @@ const SocialDashboard = () => {
 
       {/* Main Feed */}
       <div className="flex-1 flex flex-col relative bg-black">
-        {/* Mobile Tabs */}
         <div className="lg:hidden flex items-center justify-between px-4 py-4 absolute top-0 w-full z-20 bg-gradient-to-b from-black/80 to-transparent backdrop-blur-sm">
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+          <div className="flex gap-4 overflow-x-auto pb-2">
             {TABS.slice(0, 3).map(tab => (
               <button
                 key={tab.id}
@@ -137,7 +179,6 @@ const SocialDashboard = () => {
           </button>
         </div>
 
-        {/* Feed */}
         <div className="flex-1 overflow-y-scroll snap-y snap-mandatory relative z-10 no-scrollbar">
           {posts.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
@@ -149,7 +190,7 @@ const SocialDashboard = () => {
             posts.map(post => (
               <div key={post.id} className="h-full w-full snap-start relative bg-black flex items-center justify-center">
                 <div className="relative w-full max-w-md h-full md:h-[90%] md:rounded-[2rem] overflow-hidden bg-white/5 shadow-2xl">
-                  {post.videoUrl.includes('youtube.com') || post.videoUrl.includes('youtu.be') ? (
+                  {post.videoUrl?.includes('youtube.com') || post.videoUrl?.includes('youtu.be') ? (
                     <iframe
                       src={post.videoUrl + '?autoplay=1&mute=1&loop=1&playlist=' + post.videoUrl.split('/').pop()}
                       className="w-[150%] h-[150%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover pointer-events-none"
@@ -196,32 +237,32 @@ const SocialDashboard = () => {
       {isUploading && (
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
           <div className="premium-card max-w-lg w-full p-8 relative space-y-6 max-h-[90vh] overflow-y-auto">
-            <button onClick={closeModal} className="absolute top-4 right-4 p-2 glass rounded-full hover:bg-white/10 transition-colors text-white/60 hover:text-white">
-              <X size={18} />
-            </button>
+            {uploadState !== 'uploading' && (
+              <button onClick={closeModal} className="absolute top-4 right-4 p-2 glass rounded-full hover:bg-white/10 transition-colors text-white/60 hover:text-white">
+                <X size={18} />
+              </button>
+            )}
 
             <div>
               <h3 className="text-2xl font-black uppercase italic tracking-tighter">Transmit Video</h3>
-              <p className="text-text-secondary text-xs mt-1 uppercase tracking-widest font-bold">Select a source for your transmission</p>
+              <p className="text-text-secondary text-xs mt-1 uppercase tracking-widest font-bold">Uploaded securely to Supabase Storage</p>
             </div>
 
             {/* Mode Switcher */}
             <div className="flex gap-2 p-1 bg-white/5 rounded-2xl">
               <button
                 type="button"
-                onClick={() => { setUploadMode('file'); setVideoUrl(''); }}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all ${uploadMode === 'file' ? 'bg-primary text-black' : 'text-white/50 hover:text-white'}`}
+                onClick={() => { setUploadMode('file'); setVideoUrl(''); setUploadState('idle'); }}
+                disabled={uploadState === 'uploading'}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all disabled:opacity-40 ${uploadMode === 'file' ? 'bg-primary text-black' : 'text-white/50 hover:text-white'}`}
               >
                 <Film size={14} /> Upload File
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setUploadMode('url');
-                  setVideoFile(null);
-                  if (videoBlobUrl) { URL.revokeObjectURL(videoBlobUrl); setVideoBlobUrl(null); }
-                }}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all ${uploadMode === 'url' ? 'bg-primary text-black' : 'text-white/50 hover:text-white'}`}
+                onClick={() => { setUploadMode('url'); setVideoFile(null); if (videoBlobUrl) { URL.revokeObjectURL(videoBlobUrl); setVideoBlobUrl(null); } setUploadState('idle'); }}
+                disabled={uploadState === 'uploading'}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all disabled:opacity-40 ${uploadMode === 'url' ? 'bg-primary text-black' : 'text-white/50 hover:text-white'}`}
               >
                 <Link2 size={14} /> Paste URL
               </button>
@@ -231,42 +272,76 @@ const SocialDashboard = () => {
               {uploadMode === 'file' ? (
                 <div className="space-y-2">
                   <label className="text-xs font-black text-text-secondary uppercase tracking-widest ml-1">Video File</label>
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                    onDragLeave={() => setIsDragging(false)}
-                    onDrop={handleDrop}
-                    className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
-                      isDragging ? 'border-primary bg-primary/10 scale-[1.02]'
-                      : videoBlobUrl ? 'border-emerald-500/40 bg-emerald-500/5'
-                      : 'border-white/10 hover:border-primary/40 hover:bg-white/5'
-                    }`}
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="video/mp4,video/mov,video/quicktime,video/webm,video/avi"
-                      className="hidden"
-                      onChange={(e) => handleFileSelect(e.target.files[0])}
-                    />
-                    {videoBlobUrl ? (
-                      <div className="space-y-3">
-                        <video src={videoBlobUrl} className="w-full max-h-32 rounded-xl object-cover mx-auto" muted />
-                        <div className="text-emerald-400 font-black uppercase text-xs tracking-widest">✓ {videoFile?.name}</div>
-                        <div className="text-white/30 text-xs">{(videoFile?.size / 1024 / 1024).toFixed(1)} MB · Click to change</div>
-                      </div>
-                    ) : (
-                      <div className="space-y-3 pointer-events-none">
-                        <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto text-white/20">
-                          <Upload size={28} />
-                        </div>
+
+                  {/* Upload Progress */}
+                  {uploadState === 'uploading' && (
+                    <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <Loader2 size={20} className="text-primary animate-spin" />
                         <div>
-                          <p className="font-black uppercase text-white/80 text-sm">Drop video here or click to browse</p>
-                          <p className="text-text-secondary text-xs mt-1">MP4 · MOV · WebM · Max 500MB</p>
+                          <p className="font-black uppercase text-white text-sm">Uploading to Supabase...</p>
+                          <p className="text-text-secondary text-xs">{videoFile?.name}</p>
                         </div>
                       </div>
-                    )}
-                  </div>
+                      <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-primary to-orange-400 rounded-full transition-all duration-300"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                      <p className="text-primary font-black text-xs text-right">{uploadProgress}%</p>
+                    </div>
+                  )}
+
+                  {uploadState === 'success' && (
+                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 flex items-center gap-4">
+                      <CheckCircle2 size={24} className="text-emerald-400 flex-shrink-0" />
+                      <div>
+                        <p className="font-black uppercase text-emerald-400 text-sm">Upload Complete!</p>
+                        {uploadError && <p className="text-orange-400 text-xs mt-1">{uploadError}</p>}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Drop Zone — only show when not uploading */}
+                  {uploadState === 'idle' && (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={handleDrop}
+                      className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+                        isDragging ? 'border-primary bg-primary/10 scale-[1.02]'
+                        : videoBlobUrl ? 'border-emerald-500/40 bg-emerald-500/5'
+                        : 'border-white/10 hover:border-primary/40 hover:bg-white/5'
+                      }`}
+                    >
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="video/mp4,video/mov,video/quicktime,video/webm,video/avi"
+                        className="hidden"
+                        onChange={(e) => handleFileSelect(e.target.files[0])}
+                      />
+                      {videoBlobUrl ? (
+                        <div className="space-y-3">
+                          <video src={videoBlobUrl} className="w-full max-h-32 rounded-xl object-cover mx-auto" muted />
+                          <div className="text-emerald-400 font-black uppercase text-xs tracking-widest">✓ {videoFile?.name}</div>
+                          <div className="text-white/30 text-xs">{(videoFile?.size / 1024 / 1024).toFixed(1)} MB · Click to change</div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 pointer-events-none">
+                          <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto text-white/20">
+                            <Upload size={28} />
+                          </div>
+                          <div>
+                            <p className="font-black uppercase text-white/80 text-sm">Drop video here or click to browse</p>
+                            <p className="text-text-secondary text-xs mt-1">MP4 · MOV · WebM · Max 500MB · Stored in Supabase</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -282,6 +357,13 @@ const SocialDashboard = () => {
                 </div>
               )}
 
+              {uploadError && uploadState !== 'success' && (
+                <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <AlertCircle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-red-400 text-xs font-bold">{uploadError}</p>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label className="text-xs font-black text-text-secondary uppercase tracking-widest ml-1">Transmission Description</label>
                 <textarea
@@ -290,15 +372,26 @@ const SocialDashboard = () => {
                   placeholder="Add your intel..."
                   className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-primary transition-all font-bold min-h-[80px] text-sm resize-none"
                   required
+                  disabled={uploadState === 'uploading'}
                 />
               </div>
 
               <button
                 type="submit"
-                disabled={uploadMode === 'file' ? !videoBlobUrl : !videoUrl}
+                disabled={
+                  uploadState === 'uploading' ||
+                  uploadState === 'success' ||
+                  (uploadMode === 'file' ? !videoBlobUrl : !videoUrl)
+                }
                 className="btn-primary w-full py-4 text-sm tracking-widest uppercase font-black disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-3"
               >
-                <Play size={16} /> Submit for Security Review
+                {uploadState === 'uploading' ? (
+                  <><Loader2 size={16} className="animate-spin" /> Uploading...</>
+                ) : uploadState === 'success' ? (
+                  <><CheckCircle2 size={16} /> Transmitted!</>
+                ) : (
+                  <><Play size={16} /> Submit for Security Review</>
+                )}
               </button>
             </form>
           </div>

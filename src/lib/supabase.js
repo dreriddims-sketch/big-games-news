@@ -13,6 +13,42 @@ export const isSupabaseConfigured =
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 /**
+ * Upload a video file to Supabase Storage and return the permanent public URL.
+ * Bucket: 'videos' (must be created in Supabase dashboard as a public bucket)
+ */
+export const uploadVideoToStorage = async (file, onProgress) => {
+  if (!isSupabaseConfigured) {
+    // Fallback: return a local blob URL (session-only)
+    return { url: URL.createObjectURL(file), error: null, isBlobFallback: true };
+  }
+
+  const ext = file.name.split('.').pop() || 'mp4';
+  const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+  const filePath = `uploads/${fileName}`;
+
+  // Supabase Storage upload
+  const { data, error } = await supabase.storage
+    .from('videos')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type || 'video/mp4',
+    });
+
+  if (error) {
+    console.error('[Storage] Upload failed:', error.message);
+    // Fallback to blob URL so the user can still post
+    return { url: URL.createObjectURL(file), error: error.message, isBlobFallback: true };
+  }
+
+  // Get public URL
+  const { data: publicData } = supabase.storage.from('videos').getPublicUrl(filePath);
+  const publicUrl = publicData?.publicUrl;
+
+  return { url: publicUrl, error: null, isBlobFallback: false, filePath };
+};
+
+/**
  * MOCK DATABASE (Used when Supabase is not configured)
  */
 const generateSlug = (title) => {
