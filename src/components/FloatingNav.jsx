@@ -1,7 +1,7 @@
 /* src/components/FloatingNav.jsx */
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Newspaper, Target, Plus, LogIn } from 'lucide-react';
+import { Newspaper, Target, Plus, Gift, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import UploadModal from './UploadModal';
 
@@ -15,10 +15,10 @@ const FloatingNav = () => {
     // Ensure we don't show on dashboard if it's too cluttered (can be added back if needed)
     if (location.pathname.startsWith('/dashboard')) return null;
 
-    const navItems = [
-        { label: 'News', path: '/', icon: Newspaper },
-        { label: 'For You', path: '/foryou', icon: Target },
-    ];
+    const navItemStyle = (path) => {
+        const isActive = location.pathname === path;
+        return `flex flex-col items-center gap-1 group py-2 px-3 rounded-2xl transition-all ${isActive ? 'text-primary' : 'text-white/40 hover:text-white'}`;
+    };
 
     const handlePostClick = () => {
         if (!user) {
@@ -30,36 +30,41 @@ const FloatingNav = () => {
 
     return (
         <>
-            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs px-4 pointer-events-none">
-                <div className="glass rounded-[2.5rem] p-2 flex items-center justify-around shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 pointer-events-auto backdrop-blur-3xl bg-black/40">
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] w-full max-w-sm px-4 pointer-events-none">
+                <div className="glass rounded-[2.5rem] p-1.5 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 pointer-events-auto backdrop-blur-3xl bg-black/60">
                     
-                    {/* NEWS LINK */}
-                    <Link 
-                        to="/" 
-                        className={`flex flex-col items-center gap-1 group py-2 px-4 rounded-3xl transition-all ${location.pathname === '/' || location.pathname === '/news' ? 'text-primary' : 'text-white/40 hover:text-white'}`}
-                    >
-                        <Newspaper size={20} className={location.pathname === '/' || location.pathname === '/news' ? 'text-primary' : ''} />
-                        <span className="text-[8px] font-black uppercase tracking-widest">News</span>
+                    {/* NEWS */}
+                    <Link to="/" className={navItemStyle('/')}>
+                        <Newspaper size={18} />
+                        <span className="text-[7px] font-black uppercase tracking-widest">News</span>
+                    </Link>
+
+                    {/* GIFTS / SOCIAL */}
+                    <Link to="/social" className={navItemStyle('/social')}>
+                        <Gift size={18} />
+                        <span className="text-[7px] font-black uppercase tracking-widest">Gifts</span>
                     </Link>
 
                     {/* POST BUTTON (CENTER) */}
-                    <div className="relative -top-8 flex flex-col items-center gap-2">
+                    <div className="relative -top-6 flex flex-col items-center">
                         <button 
                             onClick={handlePostClick}
-                            className="w-16 h-16 rounded-full bg-primary text-black flex items-center justify-center shadow-[0_0_30px_rgba(255,153,0,0.4)] hover:shadow-[0_0_40px_rgba(255,153,0,0.7)] transform hover:scale-110 active:scale-95 transition-all relative z-10 border-[6px] border-black"
+                            className="w-14 h-14 rounded-full bg-primary text-black flex items-center justify-center shadow-[0_0_20px_rgba(255,153,0,0.4)] hover:shadow-[0_0_40px_rgba(255,153,0,0.7)] transform hover:scale-110 active:scale-95 transition-all relative z-10 border-4 border-[#08080a]"
                         >
-                            <Plus size={32} strokeWidth={3} />
+                            <Plus size={28} strokeWidth={3} />
                         </button>
-                        <span className="absolute -bottom-6 text-[9px] font-black uppercase text-primary tracking-widest text-center w-20">Post Signal</span>
                     </div>
 
-                    {/* FOR YOU LINK */}
-                    <Link 
-                        to="/foryou" 
-                        className={`flex flex-col items-center gap-1 group py-2 px-4 rounded-3xl transition-all ${location.pathname === '/foryou' ? 'text-primary' : 'text-white/40 hover:text-white'}`}
-                    >
-                        <Target size={20} className={location.pathname === '/foryou' ? 'text-primary' : ''} />
-                        <span className="text-[8px] font-black uppercase tracking-widest">For You</span>
+                    {/* FOR YOU */}
+                    <Link to="/foryou" className={navItemStyle('/foryou')}>
+                        <Target size={18} />
+                        <span className="text-[7px] font-black uppercase tracking-widest">For You</span>
+                    </Link>
+
+                    {/* PROFILE */}
+                    <Link to="/profile" className={navItemStyle('/profile')}>
+                        <User size={18} />
+                        <span className="text-[7px] font-black uppercase tracking-widest">Profile</span>
                     </Link>
                 </div>
             </div>
@@ -71,8 +76,7 @@ const FloatingNav = () => {
                     onClose={() => setIsUploadOpen(false)} 
                     user={user} 
                     onUploadSuccess={(newPost) => {
-                        // Redirect to foryou or social to see the pending post
-                        navigate('/social');
+                        navigate('/foryou');
                     }}
                 />
             )}
