@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { mockDB, dbEvents, saveToMockPosts } from '../lib/supabase';
 import { ArrowLeft, Calendar, Share2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import AdBanner from '../components/AdBanner';
+
 
 const ArticlePage = () => {
   const { slug } = useParams();
@@ -75,6 +77,8 @@ const ArticlePage = () => {
            </div>
            
            <div className="h-px w-full bg-white/5" />
+           
+           <AdBanner className="!px-0 !py-8" />
            
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">

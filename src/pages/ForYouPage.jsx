@@ -5,6 +5,8 @@ import { Heart, Share2, Gift, Play, Zap, UserPlus, MessageCircle, X, Volume2, Vo
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { fetchSocialPosts, fetchArticles, incrementViews } from '../lib/supabase';
+import AdPost from '../components/AdPost';
+
 
 const GIFT_OPTIONS = [
   { id: 1, name: 'Crystal Heart', cost: 50, emoji: '💎' },
@@ -409,36 +411,51 @@ const ForYouPage = ({ mode = 'mixed' }) => {
             )}
           </div>
         ) : (
-          filteredItems.map(item => (
-            <div key={`${item.type}-${item.id}`} className="relative h-full w-full">
-              {item.type === 'video' ? (
-                <VideoPost 
-                  post={item} 
-                  isLiked={isPostLiked(item.id)}
-                  onLike={handleLike}
-                  onGift={(id) => setGiftingPost(id)}
-                  activePostId={activePostId}
-                  likeCount={likeCounts[item.id]}
-                  isMuted={isMuted}
-                  onToggleMute={() => setIsMuted(prev => !prev)}
-                  onTagClick={setFilterTag}
-                />
-              ) : (
-                <ArticlePost 
-                  post={item} 
-                  onTagClick={setFilterTag}
-                />
-              )}
-              
-              {giftingPost === item.id && (
-                <div className="absolute inset-0 z-40 flex items-center justify-center p-4">
-                  <div className="w-full max-w-sm">
-                    <GiftPanel post={item} onClose={() => setGiftingPost(null)} />
+          filteredItems.reduce((acc, item, index) => {
+            // Push the content item
+            acc.push(
+              <div key={`${item.type}-${item.id}`} className="relative h-full w-full">
+                {item.type === 'video' ? (
+                  <VideoPost 
+                    post={item} 
+                    isLiked={isPostLiked(item.id)}
+                    onLike={handleLike}
+                    onGift={(id) => setGiftingPost(id)}
+                    activePostId={activePostId}
+                    likeCount={likeCounts[item.id]}
+                    isMuted={isMuted}
+                    onToggleMute={() => setIsMuted(prev => !prev)}
+                    onTagClick={setFilterTag}
+                  />
+                ) : (
+                  <ArticlePost 
+                    post={item} 
+                    onTagClick={setFilterTag}
+                  />
+                )}
+                
+                {giftingPost === item.id && (
+                  <div className="absolute inset-0 z-40 flex items-center justify-center p-4">
+                    <div className="w-full max-w-sm">
+                      <GiftPanel post={item} onClose={() => setGiftingPost(null)} />
+                    </div>
                   </div>
+                )}
+              </div>
+            );
+
+            // Inject ad every 3 items (adjusting for index)
+            if ((index + 1) % 3 === 0) {
+              acc.push(
+                <div key={`ad-${index}`} className="relative h-full w-full">
+                   <AdPost />
                 </div>
-              )}
-            </div>
-          ))
+              );
+            }
+
+            return acc;
+          }, [])
+
         )}
       </div>
 

@@ -5,6 +5,8 @@ import PodcastGrid from '../components/PodcastGrid';
 import ArticleFeed from '../components/ArticleFeed';
 import NewsletterPopup from '../components/NewsletterPopup';
 import Footer from '../components/Footer';
+import AdBanner from '../components/AdBanner';
+
 
 const NewsPage = () => {
   return (
@@ -18,6 +20,8 @@ const NewsPage = () => {
           <HeroBanner />
         </section>
         
+        <AdBanner className="pt-24 md:pt-32" />
+
         <div className="max-w-[1440px] mx-auto">
           {/* 2. Content Hub - Podcasts / Intelligence */}
           <PodcastGrid />
