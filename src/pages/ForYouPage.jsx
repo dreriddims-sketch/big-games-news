@@ -67,7 +67,7 @@ const GiftPanel = ({ post, onClose }) => {
 };
 
 
-const VideoPost = ({ post, isLiked, onLike, onGift, activePostId, likeCount }) => {
+const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, likeCount }) => {
   const videoRef = React.useRef(null);
   const [isInView, setIsInView] = React.useState(false);
   const isActive = activePostId === post.id;
@@ -82,7 +82,7 @@ const VideoPost = ({ post, isLiked, onLike, onGift, activePostId, likeCount }) =
 
     if (videoRef.current) observer.observe(videoRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [post.id]); // post.id dependency ensures fresh observer on component swap
 
   // Play/Pause logic for native videos
   React.useEffect(() => {
@@ -183,7 +183,7 @@ const VideoPost = ({ post, isLiked, onLike, onGift, activePostId, likeCount }) =
       </div>
     </div>
   );
-};
+});
 
 const ForYouPage = () => {
   const { user, isPostLiked, toggleLike, currentCredits } = useAuth();
