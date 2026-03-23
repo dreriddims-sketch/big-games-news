@@ -17,6 +17,34 @@ import SocialDashboard from './pages/SocialDashboard';
 import Profile from './pages/Profile';
 import LegalPage from './pages/LegalPage';
 
+// Error boundary to prevent white screen crashes
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ background: '#08080a', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', fontFamily: 'monospace' }}>
+          <div style={{ fontSize: '3rem', fontWeight: 900, textTransform: 'uppercase', fontStyle: 'italic', color: '#f59e0b', marginBottom: '1rem' }}>SIGNAL_LOST</div>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', maxWidth: '600px', textAlign: 'center', marginBottom: '2rem' }}>A runtime error occurred. Reconnecting to the terminal...</div>
+          <pre style={{ background: '#ffffff10', padding: '1rem', borderRadius: '0.5rem', fontSize: '0.6rem', color: '#ef4444', maxWidth: '100%', overflow: 'auto' }}>
+            {this.state.error?.toString()}
+          </pre>
+          <button onClick={() => window.location.reload()} style={{ marginTop: '2rem', background: '#f59e0b', color: '#000', border: 'none', padding: '1rem 2rem', borderRadius: '9999px', fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            REBOOT TERMINAL
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { pinVerified, isAdmin } = useAuth();
   
@@ -74,11 +102,15 @@ function AppRoutes() {
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <ErrorBoundary>
+            <AppRoutes />
+          </ErrorBoundary>
+        </AuthProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
