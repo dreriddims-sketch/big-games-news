@@ -34,9 +34,9 @@ const FloatingNav = () => {
                 <div className="glass rounded-[2.5rem] p-1.5 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 pointer-events-auto backdrop-blur-3xl bg-black/60">
                     
                     {/* NEWS */}
-                    <Link to="/news" className={navItemStyle('/news')}>
+                    <Link to="/feed" className={navItemStyle('/feed')}>
                         <Newspaper size={18} />
-                        <span className="text-[7px] font-black uppercase tracking-widest">News</span>
+                        <span className="text-[7px] font-black uppercase tracking-widest">News Feed</span>
                     </Link>
 
                     {/* GIFTS */}

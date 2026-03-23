@@ -302,7 +302,7 @@ const ArticlePost = React.memo(({ post, onTagClick }) => {
 
 
 
-const ForYouPage = () => {
+const ForYouPage = ({ mode = 'mixed' }) => {
   const { user, isPostLiked, toggleLike } = useAuth();
   const [items, setItems] = useState([]);
   const [likeCounts, setLikeCounts] = useState({});
@@ -356,9 +356,8 @@ const ForYouPage = () => {
     setLikeCounts(prev => ({ ...prev, [postId]: (prev[postId] || 0) + (wasLiked ? -1 : 1) }));
   };
 
-  const filteredItems = filterTag 
-    ? items.filter(item => item.tags?.includes(filterTag))
-    : items;
+  const filteredItems = (mode === 'news' ? items.filter(i => i.type === 'article') : items)
+    .filter(item => !filterTag || item.tags?.includes(filterTag));
 
   return (
     <div className="relative bg-black h-svh w-screen flex flex-col overflow-hidden">
@@ -370,9 +369,9 @@ const ForYouPage = () => {
           </Link>
           <div className="flex flex-col">
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 flex items-center gap-2">
-              <Zap size={10} className="text-primary" /> {filterTag ? `TAG: #${filterTag.toUpperCase()}` : 'For You'} 
+              <Zap size={10} className="text-primary" /> {filterTag ? `TAG: #${filterTag.toUpperCase()}` : mode === 'news' ? 'News Feed' : 'For You'} 
             </span>
-            <span className="text-[8px] font-black uppercase tracking-[0.1em] text-primary">LIVE_MIXED_FEED</span>
+            <span className="text-[8px] font-black uppercase tracking-[0.1em] text-primary">{mode === 'news' ? 'LIVE_ARTICLE_STREAM' : 'LIVE_MIXED_FEED'}</span>
           </div>
         </div>
 

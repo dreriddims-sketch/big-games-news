@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Play, PlayCircle, ChevronRight, Pencil, Upload, Image as ImageIcon } from 'lucide-react';
 import { mockDB, dbEvents, saveToMockSettings, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -151,9 +152,9 @@ const HeroBanner = () => {
               </div>
               
               <div className="flex flex-wrap items-center justify-center gap-8 pt-8">
-                <a href="#feed" className="btn-primary flex items-center gap-4 text-xs font-black italic uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-105 transition-transform active:scale-95">
+                <Link to="/feed" className="btn-primary flex items-center gap-4 text-xs font-black italic uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-105 transition-transform active:scale-95">
                   Read Intel <ChevronRight size={18} />
-                </a>
+                </Link>
                 <div className="flex items-center gap-6 text-[11px] font-black uppercase tracking-[0.3em] text-white/40">
                   REF_0x822 // ALPHA
                 </div>
