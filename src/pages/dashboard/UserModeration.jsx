@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { User, Video, ShieldAlert, Trash2, CheckCircle, Play, X, Eye } from 'lucide-react';
-import { mockDB, saveToMockSocialPosts, saveToMockUsers } from '../../lib/supabase';
+import { User, Video, ShieldAlert, Trash2, CheckCircle, Play, X, Eye, RefreshCw, Cpu, ShieldCheck, AlertTriangle, Zap } from 'lucide-react';
+import { fetchSocialPosts, updatePostStatus, deletePost, saveToMockUsers } from '../../lib/supabase';
+import { mockDB } from '../../lib/supabase';
+import { autoModerate } from '../../lib/moderation';
 
 const VideoPreview = ({ post, onClose }) => (
   <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4" onClick={onClose}>
@@ -9,9 +11,9 @@ const VideoPreview = ({ post, onClose }) => (
         <X size={16} /> Close Preview
       </button>
       <div className="rounded-3xl overflow-hidden bg-white/5 border border-white/10 shadow-2xl aspect-[9/16]">
-        {post.videoUrl.includes('youtube.com') || post.videoUrl.includes('youtu.be') ? (
+        {post.videoUrl?.includes('youtube.com') || post.videoUrl?.includes('youtu.be') ? (
           <iframe
-            src={post.videoUrl.replace('watch?v=', 'embed/') + '?autoplay=1&mute=0'}
+            src={(post.videoUrl || '').replace('watch?v=', 'embed/') + '?autoplay=1&mute=0'}
             className="w-full h-full"
             frameBorder="0"
             allow="autoplay; encrypted-media"
@@ -19,16 +21,16 @@ const VideoPreview = ({ post, onClose }) => (
           />
         ) : post.videoUrl.startsWith('blob:') ? (
           <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 space-y-4 bg-black/60">
-            <div className="w-16 h-16 rounded-2xl bg-orange-500/20 flex items-center justify-center text-orange-400">
-              <Video size={32} />
+            <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center text-red-500">
+              <ShieldAlert size={32} />
             </div>
             <div className="space-y-2">
-              <p className="font-black uppercase text-white text-sm">Local File Upload</p>
-              <p className="text-text-secondary text-xs leading-relaxed">
-                This video was uploaded from the user's device. Blob URLs are session-scoped and cannot be previewed from the admin panel.
+              <p className="font-black uppercase text-white text-sm">Broken Transmission</p>
+              <p className="text-text-secondary text-xs leading-relaxed px-4">
+                This transmission was captured as a local session blob and has expired, or the source file was never reached in the cloud (Supabase Storage).
               </p>
-              <p className="text-orange-400 text-xs font-black uppercase tracking-widest mt-2">
-                File: {post.fileName || 'Unnamed video'}
+              <p className="text-red-500 text-xs font-black uppercase tracking-widest mt-2">
+                Status: Cloud Storage Missing
               </p>
             </div>
           </div>
@@ -56,34 +58,66 @@ const UserModeration = () => {
   const [activeTab, setActiveTab] = useState('pending');
   const [previewPost, setPreviewPost] = useState(null);
 
-  useEffect(() => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAIBusy, setIsAIBusy] = useState(false);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    // Users still from localStorage (they register client-side)
     const lsUsers = JSON.parse(localStorage.getItem('bg_users') || '[]');
     setUsers(lsUsers.length > 0 ? lsUsers : mockDB.users);
 
-    const lsPosts = JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
-    setPosts(lsPosts.length > 0 ? lsPosts : mockDB.socialPosts || []);
-  }, []);
-
-  const handleApprove = (id) => {
-    const updated = posts.map(p => p.id === id ? { ...p, status: 'approved' } : p);
-    setPosts(updated);
-    saveToMockSocialPosts(updated);
+    // Posts from real Supabase (cross-browser)
+    const allPosts = await fetchSocialPosts();
+    const normalised = allPosts.map(p => ({
+      ...p,
+      userId: p.userId || p.user_id,
+      videoUrl: p.videoUrl || p.video_url,
+      fileName: p.fileName || p.file_name,
+    }));
+    setPosts(normalised);
+    setIsLoading(false);
   };
 
-  const handleDelete = (id) => {
-    const updated = posts.filter(p => p.id !== id);
-    setPosts(updated);
-    saveToMockSocialPosts(updated);
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleApprove = async (id) => {
+    await updatePostStatus(id, 'approved');
+    setPosts(prev => prev.map(p => p.id === id ? { ...p, status: 'approved' } : p));
+  };
+
+  const handleDelete = async (id) => {
+    await deletePost(id);
+    setPosts(prev => prev.filter(p => p.id !== id));
     if (previewPost?.id === id) setPreviewPost(null);
   };
 
-  const handleDeleteUser = (id) => {
+  const handleDeleteUser = async (id) => {
     const updatedUsers = users.filter(u => u.id !== id);
     setUsers(updatedUsers);
     saveToMockUsers(updatedUsers);
-    const updatedPosts = posts.filter(p => p.userId !== id);
-    setPosts(updatedPosts);
-    saveToMockSocialPosts(updatedPosts);
+    // Cascade delete their posts from Supabase
+    const userPosts = posts.filter(p => p.userId === id);
+    for (const p of userPosts) {
+      await deletePost(p.id);
+    }
+    setPosts(prev => prev.filter(p => p.userId !== id));
+  };
+
+  const handleBulkModerate = async () => {
+    setIsAIBusy(true);
+    const pending = posts.filter(p => p.status === 'pending');
+    const results = await autoModerate(pending);
+
+    for (const result of results) {
+      if (result.status === 'approved' || result.status === 'rejected') {
+        await updatePostStatus(result.id, result.status, result.ai_moderation_score);
+      }
+    }
+    await loadData(); // Reload all data to reflect changes
+    setIsAIBusy(false);
   };
 
   const pendingPosts = posts.filter(p => p.status === 'pending');
@@ -96,7 +130,7 @@ const UserModeration = () => {
         className="relative aspect-[9/16] max-h-64 bg-black/60 cursor-pointer group flex items-center justify-center"
         onClick={() => setPreviewPost(post)}
       >
-        {post.videoUrl.startsWith('blob:') ? (
+        {post.videoUrl?.startsWith('blob:') ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 space-y-2">
             <div className="w-12 h-12 rounded-2xl bg-orange-500/20 flex items-center justify-center text-orange-400">
               <Video size={24} />
@@ -104,7 +138,7 @@ const UserModeration = () => {
             <p className="text-orange-400 font-black uppercase text-[9px] tracking-widest">Local File</p>
             {post.fileName && <p className="text-white/30 text-[9px] break-all">{post.fileName}</p>}
           </div>
-        ) : post.videoUrl.includes('youtube.com') || post.videoUrl.includes('youtu.be') ? (
+        ) : (post.videoUrl?.includes('youtube.com') || post.videoUrl?.includes('youtu.be')) ? (
           <div className="absolute inset-0">
             <img
               src={`https://img.youtube.com/vi/${post.videoUrl.split('v=')[1]?.split('&')[0] || post.videoUrl.split('/').pop()}/mqdefault.jpg`}
@@ -125,12 +159,33 @@ const UserModeration = () => {
         </div>
 
         {showApprove ? (
+          <div className="absolute top-3 left-3 bg-orange-500/20 text-orange-400 text-[8px] px-2 py-1 rounded-full border border-orange-500/30 uppercase font-black">
+            ⏳ Pending
+          </div>
+        ) : (
           <div className="absolute top-3 left-3 bg-emerald-500/20 text-emerald-400 text-[8px] px-2 py-1 rounded-full border border-emerald-500/20 uppercase font-black">
             ✓ Approved
           </div>
-        ) : (
-          <div className="absolute top-3 left-3 bg-orange-500/20 text-orange-400 text-[8px] px-2 py-1 rounded-full border border-orange-500/30 uppercase font-black">
-            ⏳ Pending
+        )}
+
+        {post.ai_moderation_score !== null && (
+          <div className="absolute top-3 right-3 flex items-center gap-1">
+            {post.ai_moderation_score >= 0.8 ? (
+              <span className="bg-emerald-500/20 text-emerald-400 text-[8px] px-2 py-1 rounded-full border border-emerald-500/20 uppercase font-black flex items-center gap-1">
+                <ShieldCheck size={10} /> AI Approved
+              </span>
+            ) : post.ai_moderation_score >= 0.5 ? (
+              <span className="bg-orange-500/20 text-orange-400 text-[8px] px-2 py-1 rounded-full border border-orange-500/30 uppercase font-black flex items-center gap-1">
+                <AlertTriangle size={10} /> AI Review
+              </span>
+            ) : (
+              <span className="bg-red-500/20 text-red-400 text-[8px] px-2 py-1 rounded-full border border-red-500/30 uppercase font-black flex items-center gap-1">
+                <ShieldAlert size={10} /> AI Rejected
+              </span>
+            )}
+            <span className="bg-white/5 text-white/60 text-[8px] px-2 py-1 rounded-full border border-white/10 uppercase font-black">
+              Score: {(post.ai_moderation_score * 100).toFixed(0)}%
+            </span>
           </div>
         )}
       </div>

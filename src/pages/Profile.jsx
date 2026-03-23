@@ -1,18 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { mockDB } from '../lib/supabase';
-import { Video, Heart, LogOut, ShieldAlert } from 'lucide-react';
+import { fetchSocialPosts, deletePost } from '../lib/supabase';
+import { Video, Heart, LogOut, ShieldAlert, Trash2 } from 'lucide-react';
 
 const Profile = () => {
    const { user, logout } = useAuth();
    const [myPosts, setMyPosts] = useState([]);
 
    useEffect(() => {
-     if (user) {
-       const posts = mockDB.socialPosts || [];
-       setMyPosts(posts.filter(p => p.userId === user.id));
-     }
+     const getPosts = async () => {
+       if (user) {
+         const allPosts = await fetchSocialPosts();
+         // Normalise field names (Supabase uses snake_case)
+         const normalised = allPosts.map(p => ({
+           ...p,
+           userId: p.userId || p.user_id,
+           videoUrl: p.videoUrl || p.video_url,
+           fileName: p.fileName || p.file_name,
+         }));
+         setMyPosts(normalised.filter(p => p.userId === user.id));
+       }
+     };
+     getPosts();
    }, [user]);
 
    if (!user) return <Navigate to="/signin" replace />;
@@ -65,25 +75,45 @@ const Profile = () => {
                   </div>
                ) : (
                  myPosts.map(post => (
-                   <div key={post.id} className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-black group border border-white/10 shadow-xl">
-                      {post.videoUrl.includes('youtube.com') || post.videoUrl.includes('youtu.be') ? (
-                         <iframe src={post.videoUrl} className="w-[150%] h-[150%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity" />
-                      ) : (
-                         <video src={post.videoUrl} className="w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-opacity" />
-                      )}
-                      
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent flex flex-col justify-end p-4">
-                         <div className="flex justify-between items-end">
-                            <p className="text-xs text-white line-clamp-2 font-bold max-w-[70%]">{post.description}</p>
-                            <div className="flex items-center gap-1 text-primary text-[10px] font-black"><Heart size={12} /> {post.likes}</div>
-                         </div>
-                         {post.status === 'pending' && (
-                           <div className="flex items-center justify-center gap-2 w-full mt-3 py-2 bg-orange-500/20 text-orange-400 text-[9px] font-black uppercase tracking-widest rounded-lg border border-orange-500/20 backdrop-blur-md">
-                             <ShieldAlert size={12} /> Moderation Review
-                           </div>
-                         )}
-                      </div>
-                   </div>
+                    <div key={post.id} className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-black group border border-white/10 shadow-xl transition-all hover:border-primary/30">
+                       {post.videoUrl.includes('youtube.com') || post.videoUrl.includes('youtu.be') ? (
+                          <iframe src={post.videoUrl} className="w-[150%] h-[150%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity" />
+                       ) : (
+                          <video src={post.videoUrl} className="w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-opacity" />
+                       )}
+                       
+                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-4">
+                          <div className="flex justify-between items-end gap-2">
+                             <p className="text-[10px] text-white/80 line-clamp-2 font-medium flex-1">{post.description}</p>
+                             <div className="flex items-center gap-1 text-primary text-[10px] font-black"><Heart size={12} /> {post.likes || 0}</div>
+                          </div>
+                          
+                          {/* OVERLAY CONTROLS - ALWAYS VISIBLE ON MOBILE, HOVER ON DESKTOP */}
+                          <div className="absolute top-3 right-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity flex flex-col gap-2">
+                            <button 
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (window.confirm('Are you sure you want to permanently delete this video?')) {
+                                  const { error } = await deletePost(post.id);
+                                  if (!error) {
+                                    setMyPosts(prev => prev.filter(p => p.id !== post.id));
+                                  }
+                                }
+                              }}
+                              className="p-3 bg-red-500/80 md:bg-red-500 text-white rounded-full shadow-2xl hover:bg-red-600 transition-all border border-red-400/20"
+                              title="Delete Transmission"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+
+                          {post.status === 'pending' && (
+                            <div className="flex items-center justify-center gap-2 w-full mt-3 py-2 bg-orange-500/20 text-orange-400 text-[9px] font-black uppercase tracking-widest rounded-lg border border-orange-500/20 backdrop-blur-md">
+                              <ShieldAlert size={12} /> Review Pending
+                            </div>
+                          )}
+                       </div>
+                    </div>
                  ))
                )}
             </div>

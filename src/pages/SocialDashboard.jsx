@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Heart, MessageCircle, Share2, Target, Users, Globe, Building2, Upload, Film, Link2, X, Play, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { 
+  Heart, MessageCircle, Share2, Target, Users, Globe, Building2, 
+  Upload, Film, Link2, X, Play, Loader2, CheckCircle2, AlertCircle,
+  Clock, Trash2, Shield, Lock, Video, Zap
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { mockDB, saveToMockSocialPosts, uploadVideoToStorage } from '../lib/supabase';
+import { uploadVideoToStorage, insertSocialPost, fetchSocialPosts, deletePost } from '../lib/supabase';
 
 const TABS = [
   { id: 'foryou', label: 'For You', icon: Target },
@@ -28,8 +32,18 @@ const SocialDashboard = () => {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    const allPosts = mockDB.socialPosts || [];
-    setPosts(allPosts.filter(p => p.status === 'approved' || p.userId === user?.id));
+    const loadPosts = async () => {
+      const allPosts = await fetchSocialPosts();
+      // Normalise field names (Supabase uses snake_case)
+      const normalised = allPosts.map(p => ({
+        ...p,
+        userId: p.userId || p.user_id,
+        videoUrl: p.videoUrl || p.video_url,
+        fileName: p.fileName || p.file_name,
+      }));
+      setPosts(normalised.filter(p => p.status === 'approved' || p.userId === user?.id));
+    };
+    loadPosts();
   }, [user]);
 
   useEffect(() => {
@@ -98,7 +112,9 @@ const SocialDashboard = () => {
       isBlob = result.isBlobFallback;
 
       if (result.isBlobFallback) {
-        setUploadError('Stored temporarily (Supabase bucket not configured). Video only visible this session.');
+        setUploadState('error');
+        setUploadError('CRITICAL ERROR: Could not reach Supabase Storage. Your "videos" bucket must be Public and configured before you can post.');
+        return;
       }
 
       setUploadState('success');
@@ -119,9 +135,8 @@ const SocialDashboard = () => {
       fileName,
     };
 
-    const updated = [newPost, ...mockDB.socialPosts];
-    saveToMockSocialPosts(updated);
-    setPosts([newPost, ...posts]);
+    await insertSocialPost(newPost);
+    setPosts(prev => [newPost, ...prev]);
 
     // Small delay so user sees success state
     setTimeout(() => closeModal(), 1200);
@@ -158,6 +173,8 @@ const SocialDashboard = () => {
             </button>
           );
         })}
+
+        {/* END OF TABS */}
       </div>
 
       {/* Main Feed */}
@@ -179,7 +196,51 @@ const SocialDashboard = () => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-scroll snap-y snap-mandatory relative z-10 no-scrollbar">
+        <div className="flex-1 overflow-y-scroll snap-y snap-mandatory relative z-10 no-scrollbar p-4 md:p-8">
+          {/* USER'S PENDING SUBMISSIONS */}
+          {posts.filter(p => p.userId === user?.id && p.status === 'pending').length > 0 && (
+            <div className="mb-12 glass rounded-[2rem] p-8 border-white/10 max-w-4xl mx-auto w-full">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h3 className="text-white font-black uppercase tracking-[0.2em] text-sm flex items-center gap-3">
+                    <Clock size={18} className="text-primary" /> My Pending Submissions
+                  </h3>
+                  <p className="text-text-secondary text-xs mt-1">Transmissions currently under security review.</p>
+                </div>
+                <div className="px-3 py-1 bg-primary/10 rounded-full border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest">
+                  {posts.filter(p => p.userId === user?.id && p.status === 'pending').length} Active
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {posts
+                  .filter(p => p.userId === user?.id && p.status === 'pending')
+                  .map(post => (
+                    <div key={post.id} className="relative aspect-[9/16] rounded-2xl overflow-hidden group bg-black/40 border border-white/10 hover:border-white/20 transition-all">
+                      <video src={post.videoUrl} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-black/40 backdrop-blur-[1px] opacity-100 lg:group-hover:opacity-0 transition-opacity">
+                        <Clock size={24} className="text-white/20 mb-2" />
+                        <p className="text-[8px] text-white/60 font-black uppercase tracking-[0.2em]">In Review</p>
+                      </div>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity bg-black/40 lg:bg-black/60">
+                        <button 
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (window.confirm('Retract this submission?')) {
+                              await deletePost(post.id);
+                              setPosts(prev => prev.filter(p => p.id !== post.id));
+                            }
+                          }}
+                          className="p-4 bg-red-500 hover:bg-red-600 text-white rounded-full transition-all shadow-2xl scale-90 lg:scale-75 lg:group-hover:scale-100"
+                          title="Retract Submission"
+                        >
+                          <Trash2 size={24} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
           {posts.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
               <div className="p-6 bg-white/5 rounded-full text-white/20 mb-4"><Upload size={48} /></div>

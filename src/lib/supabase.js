@@ -48,6 +48,98 @@ export const uploadVideoToStorage = async (file, onProgress) => {
   return { url: publicUrl, error: null, isBlobFallback: false, filePath };
 };
 
+// ─────────────────────────────────────────────
+// SUPABASE SOCIAL POSTS DB (real cross-browser)
+// ─────────────────────────────────────────────
+
+/**
+ * Fetch all social posts from Supabase (or localStorage fallback).
+ * Table: social_posts
+ */
+export const fetchSocialPosts = async () => {
+  if (!isSupabaseConfigured) {
+    const lsPosts = JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
+    return lsPosts;
+  }
+  const { data, error } = await supabase
+    .from('social_posts')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('[DB] fetchSocialPosts error:', error.message);
+    return JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
+  }
+  return data || [];
+};
+
+/**
+ * Insert a new social post into Supabase.
+ */
+export const insertSocialPost = async (post) => {
+  if (!isSupabaseConfigured) {
+    const existing = JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
+    const updated = [post, ...existing];
+    localStorage.setItem('bg_social_posts', JSON.stringify(updated));
+    return { data: post, error: null };
+  }
+  const { data, error } = await supabase
+    .from('social_posts')
+    .insert([{
+      id: post.id,
+      user_id: post.userId,
+      username: post.username,
+      video_url: post.videoUrl,
+      description: post.description,
+      status: post.status,
+      likes: post.likes || 0,
+      comments: post.comments || 0,
+      tab: post.tab || 'foryou',
+      file_name: post.fileName || null,
+      created_at: post.created_at,
+    }])
+    .select()
+    .single();
+  if (error) console.error('[DB] insertSocialPost error:', error.message);
+  return { data, error };
+};
+
+/**
+ * Update a post's status (e.g. 'approved' or 'rejected').
+ */
+export const updatePostStatus = async (id, status, aiScore = null) => {
+  if (!isSupabaseConfigured) {
+    const lsPosts = JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
+    const updated = lsPosts.map(p => p.id === id ? { ...p, status, ai_moderation_score: aiScore } : p);
+    localStorage.setItem('bg_social_posts', JSON.stringify(updated));
+    return { data: updated, error: null };
+  }
+  const { data, error } = await supabase
+    .from('social_posts')
+    .update({ status, ai_moderation_score: aiScore })
+    .eq('id', id);
+  if (error) console.error('[DB] updatePostStatus error:', error.message);
+  return { data, error };
+};
+
+/**
+ * Delete a social post permanently.
+ */
+export const deletePost = async (id) => {
+  if (!isSupabaseConfigured) {
+    const existing = JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
+    localStorage.setItem('bg_social_posts', JSON.stringify(existing.filter(p => p.id !== id)));
+    return { error: null };
+  }
+  const { error } = await supabase
+    .from('social_posts')
+    .delete()
+    .eq('id', id);
+  if (error) console.error('[DB] deletePost error:', error.message);
+  return { error };
+};
+
+
+
 /**
  * MOCK DATABASE (Used when Supabase is not configured)
  */
