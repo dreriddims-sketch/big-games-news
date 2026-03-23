@@ -135,11 +135,31 @@ export const updatePostStatus = async (id, status, aiScore = null) => {
     localStorage.setItem('bg_social_posts', JSON.stringify(updated));
     return { data: updated, error: null };
   }
-  const { data, error } = await supabase
+
+  // Use Number for BigInt/Serial columns if possible, but handle UUIDs as strings
+  const lookupId = !isNaN(id) && typeof id !== 'boolean' ? Number(id) : id;
+
+  const { data, error, count } = await supabase
     .from('social_posts')
     .update({ status, ai_moderation_score: aiScore })
-    .eq('id', id);
-  if (error) console.error('[DB] updatePostStatus error:', error.message);
+    .eq('id', lookupId)
+    .select();
+
+  if (error) {
+    console.error('[DB] updatePostStatus error:', error.message);
+  } else if (!data || data.length === 0) {
+    console.warn('[DB] updatePostStatus: Success, but 0 rows matched ID:', lookupId);
+    // Try string lookup as fallback if number failed
+    if (typeof lookupId === 'number') {
+      const retry = await supabase
+        .from('social_posts')
+        .update({ status, ai_moderation_score: aiScore })
+        .eq('id', String(lookupId))
+        .select();
+      return retry;
+    }
+  }
+  
   return { data, error };
 };
 

@@ -84,12 +84,16 @@ const UserModeration = () => {
   }, []);
 
   const handleApprove = async (id) => {
-    // Force status to 'active' to match feed logic and insert defaults
-    const { error } = await updatePostStatus(id, 'active');
+    const { data, error } = await updatePostStatus(id, 'active');
+    
     if (error) {
-      alert("Transmission Authorization Failed: " + error);
+      alert("Transmission Authorization Error: " + error);
+    } else if (!data || data.length === 0) {
+      alert("Target Trace Lost: Could not find transmission " + id + " in the network database. Verify ID type and RLS permissions.");
     } else {
-      setPosts(prev => prev.map(p => String(p.id) === String(id) || p.id === id ? { ...p, status: 'active' } : p));
+      // Local update for instant response, then reload to be sure
+      setPosts(prev => prev.map(p => (String(p.id) === String(id) || p.id === id) ? { ...p, status: 'active' } : p));
+      await loadData();
     }
   };
 
