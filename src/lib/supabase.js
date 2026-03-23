@@ -112,7 +112,7 @@ export const insertSocialPost = async (post) => {
       username: post.username,
       video_url: post.videoUrl,
       description: post.description,
-      status: 'active', // FORCE ACTIVE FOR INSTANT VISIBILITY
+      status: post.status || 'active', // Respect status or default to active
       likes: post.likes || 0,
       comments: post.comments || 0,
       tab: post.tab || 'foryou',
@@ -131,7 +131,7 @@ export const insertSocialPost = async (post) => {
 export const updatePostStatus = async (id, status, aiScore = null) => {
   if (!isSupabaseConfigured) {
     const lsPosts = JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
-    const updated = lsPosts.map(p => p.id === id ? { ...p, status, ai_moderation_score: aiScore } : p);
+    const updated = lsPosts.map(p => String(p.id) === String(id) ? { ...p, status, ai_moderation_score: aiScore } : p);
     localStorage.setItem('bg_social_posts', JSON.stringify(updated));
     return { data: updated, error: null };
   }

@@ -246,7 +246,7 @@ const SocialDashboard = () => {
                   )}
 
                   {/* Overlay UI */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-black/40 flex flex-col justify-between p-6 md:p-8 pointer-events-none">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-black/40 flex flex-col justify-between p-6 md:p-8 pb-32 md:pb-12 pointer-events-none">
                     <div className="flex justify-between items-start pt-4 pointer-events-none">
                       <div className="flex items-center gap-2">
                         <Zap size={14} className="text-primary animate-pulse" />
@@ -273,7 +273,7 @@ const SocialDashboard = () => {
                       </div>
 
                       {/* Action buttons */}
-                      <div className="flex flex-col gap-5 items-center pb-8 pointer-events-auto">
+                      <div className="flex flex-col gap-5 items-center pb-2 pointer-events-auto">
                         {/* Like */}
                         <button
                           onClick={() => handleLike(post.id)}

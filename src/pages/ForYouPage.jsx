@@ -160,7 +160,7 @@ const ForYouPage = () => {
                 )}
 
                 {/* Bottom info */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 flex justify-between items-end">
+                <div className="absolute bottom-0 left-0 right-0 p-6 pb-24 md:pb-12 flex justify-between items-end">
                   <div className="space-y-2 max-w-[75%]">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-black text-sm border border-primary/20">
@@ -174,7 +174,7 @@ const ForYouPage = () => {
                   </div>
 
                   {/* Action buttons */}
-                  <div className="flex flex-col gap-5 items-center pb-4">
+                  <div className="flex flex-col gap-5 items-center pb-24 md:pb-12 pointer-events-auto">
                     <button
                       onClick={() => handleLike(post.id)}
                       className="flex flex-col items-center gap-1 group"

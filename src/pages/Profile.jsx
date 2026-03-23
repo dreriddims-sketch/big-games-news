@@ -196,7 +196,7 @@ const Profile = () => {
     if (!user) return <Navigate to="/signin" replace />;
 
     return (
-       <div className="max-w-4xl mx-auto py-0 space-y-0 relative z-10 min-h-screen bg-black/20 backdrop-blur-sm">
+       <div className="max-w-4xl mx-auto pb-32 relative z-10 min-h-screen bg-black/20 backdrop-blur-sm">
           {/* BANNER SECTION */}
           <div className="relative h-48 md:h-64 w-full overflow-hidden group">
              {profileData.banner ? (

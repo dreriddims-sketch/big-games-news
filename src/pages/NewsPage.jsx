@@ -12,7 +12,7 @@ const NewsPage = () => {
       {/* Subtle Background Layer */}
       <div className="fixed inset-0 bg-grid pointer-events-none opacity-10 z-0 bg-black/40" />
       
-      <main className="relative z-10 flex-1">
+      <main className="relative z-10 flex-1 pb-32">
         {/* 1. Hero Spotlight - Focused & Premium */}
         <section className="border-b border-white/5 bg-black/40 backdrop-blur-3xl">
           <HeroBanner />

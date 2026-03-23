@@ -84,26 +84,38 @@ const UserModeration = () => {
   }, []);
 
   const handleApprove = async (id) => {
-    await updatePostStatus(id, 'approved');
-    setPosts(prev => prev.map(p => p.id === id ? { ...p, status: 'approved' } : p));
+    // Force status to 'active' to match feed logic and insert defaults
+    const { error } = await updatePostStatus(id, 'active');
+    if (error) {
+      alert("Transmission Authorization Failed: " + error);
+    } else {
+      setPosts(prev => prev.map(p => String(p.id) === String(id) || p.id === id ? { ...p, status: 'active' } : p));
+    }
   };
 
   const handleDelete = async (id) => {
-    await deletePost(id);
-    setPosts(prev => prev.filter(p => p.id !== id));
-    if (previewPost?.id === id) setPreviewPost(null);
+    if (!window.confirm("Retract this transmission from the network?")) return;
+    const { error } = await deletePost(id);
+    if (error) {
+      alert("Retraction Failed: " + error);
+    } else {
+      setPosts(prev => prev.filter(p => String(p.id) !== String(id) && p.id !== id));
+      if (previewPost && (String(previewPost.id) === String(id) || previewPost.id === id)) setPreviewPost(null);
+    }
   };
 
   const handleDeleteUser = async (id) => {
-    const updatedUsers = users.filter(u => u.id !== id);
+    if (!window.confirm("CRITICAL: Proceed with absolute deletion of this identity and all associated content?")) return;
+    const updatedUsers = users.filter(u => String(u.id) !== String(id) && u.id !== id);
     setUsers(updatedUsers);
     saveToMockUsers(updatedUsers);
+    
     // Cascade delete their posts from Supabase
-    const userPosts = posts.filter(p => p.userId === id);
+    const userPosts = posts.filter(p => String(p.userId) === String(id) || p.userId === id);
     for (const p of userPosts) {
       await deletePost(p.id);
     }
-    setPosts(prev => prev.filter(p => p.userId !== id));
+    setPosts(prev => prev.filter(p => String(p.userId) !== String(id) && p.userId !== id));
   };
 
   const handleBulkModerate = async () => {
@@ -112,8 +124,9 @@ const UserModeration = () => {
     const results = await autoModerate(pending);
 
     for (const result of results) {
-      if (result.status === 'approved' || result.status === 'rejected') {
-        await updatePostStatus(result.id, result.status, result.ai_moderation_score);
+      if (result.status === 'approved' || result.status === 'rejected' || result.status === 'active') {
+        const finalStatus = (result.status === 'approved' || result.status === 'active') ? 'active' : 'rejected';
+        await updatePostStatus(result.id, finalStatus, result.ai_moderation_score);
       }
     }
     await loadData(); // Reload all data to reflect changes
@@ -121,7 +134,7 @@ const UserModeration = () => {
   };
 
   const pendingPosts = posts.filter(p => p.status === 'pending');
-  const approvedPosts = posts.filter(p => p.status === 'approved');
+  const approvedPosts = posts.filter(p => p.status === 'approved' || p.status === 'active');
 
   const PostCard = ({ post, showApprove = false }) => (
     <div className="premium-card p-0 flex flex-col bg-white/5 overflow-hidden border-white/10 hover:border-primary/20 transition-all">
@@ -234,16 +247,24 @@ const UserModeration = () => {
     <div className="space-y-10">
       {previewPost && <VideoPreview post={previewPost} onClose={() => setPreviewPost(null)} />}
 
-      <div className="space-y-1">
-        <h2 className="text-3xl font-black uppercase tracking-tighter italic">Network Citizens & Moderation</h2>
-        <p className="text-base text-text-secondary font-medium pl-1">Monitor, preview, approve, and delete user-submitted transmissions.</p>
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-black uppercase tracking-tighter italic">Network Citizens & Moderation</h2>
+          <p className="text-base text-text-secondary font-medium pl-1">Monitor, preview, approve, and delete user-submitted transmissions.</p>
+        </div>
+        <button 
+          onClick={loadData}
+          className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-primary hover:border-primary/20 transition-all group"
+        >
+          <RefreshCw size={14} className={isLoading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
+          {isLoading ? 'Syncing...' : 'Sync Node'}
+        </button>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-3 border-b border-white/10 pb-4 overflow-x-auto">
         <button
           onClick={() => setActiveTab('pending')}
-          className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all whitespace-nowrap ${activeTab === 'pending' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+          className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all whitespace-nowrap ${activeTab === 'pending' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
         >
           <ShieldAlert size={16} /> Pending Review
           {pendingPosts.length > 0 && (
@@ -254,15 +275,15 @@ const UserModeration = () => {
         </button>
         <button
           onClick={() => setActiveTab('users')}
-          className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all whitespace-nowrap ${activeTab === 'users' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+          className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all whitespace-nowrap ${activeTab === 'users' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
         >
-          <User size={16} /> Registered Users ({users.length})
+          <User size={16} /> Citizens ({users.length})
         </button>
         <button
           onClick={() => setActiveTab('all')}
-          className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all whitespace-nowrap ${activeTab === 'all' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+          className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all whitespace-nowrap ${activeTab === 'all' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
         >
-          <Video size={16} /> Approved Content ({approvedPosts.length})
+          <Video size={16} /> Network Logs ({approvedPosts.length})
         </button>
       </div>
 

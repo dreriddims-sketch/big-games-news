@@ -18,6 +18,7 @@ import Profile from './pages/Profile';
 import LegalPage from './pages/LegalPage';
 import ForYouPage from './pages/ForYouPage';
 import LowCreditAlert from './components/LowCreditAlert';
+import FloatingNav from './components/FloatingNav';
 
 // Error boundary to prevent white screen crashes
 class ErrorBoundary extends React.Component {
@@ -66,6 +67,7 @@ function AppRoutes() {
     <>
       <Navbar />
       <LowCreditAlert />
+      <FloatingNav />
       <Routes>
         <Route path="/" element={<NewsPage />} />
         <Route path="/news" element={<NewsPage />} />
