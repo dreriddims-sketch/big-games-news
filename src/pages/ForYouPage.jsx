@@ -1,6 +1,6 @@
 /* src/pages/ForYouPage.jsx - Public-facing For You feed */
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Heart, Share2, Gift, Play, Zap, UserPlus, MessageCircle, X, Volume2, VolumeX, Eye, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -306,6 +306,8 @@ const ArticlePost = React.memo(({ post, onTagClick }) => {
 
 const ForYouPage = ({ mode = 'mixed' }) => {
   const { user, isPostLiked, toggleLike } = useAuth();
+  const { slug } = useParams();
+  const scrollContainerRef = React.useRef(null);
   const [items, setItems] = useState([]);
   const [likeCounts, setLikeCounts] = useState({});
   const [giftingPost, setGiftingPost] = useState(null);
@@ -335,7 +337,23 @@ const ForYouPage = ({ mode = 'mixed' }) => {
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
       setItems(combined);
-      if (combined.length > 0) setActivePostId(combined[0].id);
+      
+      // If slug exists, find the item and set activePostId
+      if (slug) {
+        const target = combined.find(i => (i.slug || i.id.toString()) === slug);
+        if (target) {
+          setActivePostId(target.id);
+          // Small delay to ensure items are rendered before scrolling
+          setTimeout(() => {
+            const el = document.getElementById(`${target.type}-${target.id}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        } else if (combined.length > 0) {
+          setActivePostId(combined[0].id);
+        }
+      } else if (combined.length > 0) {
+        setActivePostId(combined[0].id);
+      }
       
       const counts = {};
       normalisedSocial.forEach(p => { counts[p.id] = p.likes || 0; });
@@ -388,6 +406,7 @@ const ForYouPage = ({ mode = 'mixed' }) => {
       </div>
 
       <div 
+        ref={scrollContainerRef}
         className="flex-1 h-full w-full overflow-y-scroll snap-y snap-mandatory no-scrollbar overflow-x-hidden"
         onScroll={(e) => {
           const index = Math.round(e.target.scrollTop / e.target.clientHeight);
@@ -414,7 +433,7 @@ const ForYouPage = ({ mode = 'mixed' }) => {
           filteredItems.reduce((acc, item, index) => {
             // Push the content item
             acc.push(
-              <div key={`${item.type}-${item.id}`} className="relative h-full w-full">
+              <div key={`${item.type}-${item.id}`} id={`${item.type}-${item.id}`} className="relative h-full w-full">
                 {item.type === 'video' ? (
                   <VideoPost 
                     post={item} 

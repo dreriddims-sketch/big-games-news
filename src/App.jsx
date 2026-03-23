@@ -76,7 +76,7 @@ function AppRoutes() {
         <Routes>
           <Route path="/" element={<NewsPage />} />
           <Route path="/news" element={<NewsPage />} />
-          <Route path="/feed" element={<ForYouPage mode="news" />} />
+          <Route path="/feed/:slug?" element={<ForYouPage mode="news" />} />
           <Route path="/foryou" element={<ForYouPage />} />
           <Route path="/gifts" element={<GiftsPage />} />
           <Route path="/archive" element={<ArchivePage />} />

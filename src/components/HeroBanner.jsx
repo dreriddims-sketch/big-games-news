@@ -178,8 +178,8 @@ const HeroBanner = () => {
              onChange={(e) => handleFileChange(e, 'hero_banner')} 
            />
            
-           <a 
-             href={editMode ? undefined : "/article/global-esports-tournament-announced"}
+           <Link 
+             to={editMode ? "#" : "/feed/global-esports-tournament-announced"}
              className="premium-card relative min-h-[350px] md:min-h-[500px] flex flex-col justify-end p-0 rounded-2xl md:rounded-3xl overflow-hidden border-white/10 shadow-3xl bg-black block group"
            >
               <img 
@@ -199,7 +199,7 @@ const HeroBanner = () => {
                   </button>
                 </div>
               )}
-           </a>
+           </Link>
         </motion.div>
 
         <motion.div 
@@ -246,8 +246,8 @@ const HeroBanner = () => {
               </div>
               
               <div className="space-y-4">
-                 <a 
-                   href={editMode ? undefined : "/article/global-esports-tournament-announced"}
+                 <Link 
+                   to={editMode ? "#" : "/feed/global-esports-tournament-announced"}
                    className={`block transition-all ${!editMode ? 'hover:text-primary group-hover:translate-x-1' : ''}`}
                  >
                    <h4 
@@ -258,7 +258,7 @@ const HeroBanner = () => {
                    >
                      {settings.spotlight_title || 'Global eSports Tournament Announced'}
                    </h4>
-                 </a>
+                </Link>
                  <p 
                    contentEditable={editMode}
                    onBlur={(e) => handleInlineEdit('spotlight_desc', e.target.innerText)}
@@ -267,12 +267,12 @@ const HeroBanner = () => {
                  >
                    {settings.spotlight_desc || 'Get ready for the biggest event in our history. The Big Games World Championship kicks off this Summer with a $1M prize pool.'}
                  </p>
-                 <a 
-                   href="/article/global-esports-tournament-announced"
+                 <Link 
+                   to="/feed/global-esports-tournament-announced"
                    className="block w-full py-4 border-t border-white/5 text-[10px] font-black uppercase tracking-[0.3em] text-text-secondary hover:text-primary transition-colors text-center"
                  >
                    Access Intelligence Feed
-                 </a>
+                 </Link>
               </div>
            </div>
         </motion.div>

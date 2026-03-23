@@ -75,7 +75,7 @@ const ArticleFeed = () => {
               className="group flex flex-col h-full premium-card p-0 bg-white/5 border-white/10 rounded-3xl overflow-hidden hover:-translate-y-2 transition-transform duration-700"
             >
               {/* Clickable Image — always links to article */}
-              <Link to={`/article/${post.slug}`} className="block relative aspect-[16/10] overflow-hidden">
+              <Link to={`/feed/${post.slug}`} className="block relative aspect-[16/10] overflow-hidden">
                 <img 
                   src={post.banner_url} 
                   alt={post.title} 
@@ -109,7 +109,7 @@ const ArticleFeed = () => {
                       {post.title}
                     </h3>
                   ) : (
-                    <Link to={`/article/${post.slug}`}>
+                    <Link to={`/feed/${post.slug}`}>
                       <h3 className="text-xl md:text-3xl font-black uppercase tracking-tight leading-none italic transition-colors group-hover:text-primary cursor-pointer">
                         {post.title}
                       </h3>
@@ -127,7 +127,7 @@ const ArticleFeed = () => {
                       {post.content}
                     </p>
                   ) : (
-                    <Link to={`/article/${post.slug}`}>
+                    <Link to={`/feed/${post.slug}`}>
                       <p className="text-text-secondary text-base leading-relaxed line-clamp-3 opacity-60 group-hover:opacity-100 transition-opacity cursor-pointer">
                         {post.content}
                       </p>
@@ -138,7 +138,7 @@ const ArticleFeed = () => {
 
             <div className="px-6 md:px-10 pb-8 mt-auto">
               <div className="pt-8 flex items-center justify-between border-t border-white/5">
-                <Link to={`/article/${post.slug}`} className="flex items-center gap-3 text-white font-black uppercase text-[11px] tracking-widest group/btn hover:text-primary transition-colors">
+                <Link to={`/feed/${post.slug}`} className="flex items-center gap-3 text-white font-black uppercase text-[11px] tracking-widest group/btn hover:text-primary transition-colors">
                   Read Transmission <ArrowRight size={16} className="group-hover/btn:translate-x-2 transition-transform" />
                 </Link>
                 <div className="flex items-center gap-4">
@@ -147,7 +147,7 @@ const ArticleFeed = () => {
                    </div>
                    <button 
                      onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/article/${post.slug}`);
+                        navigator.clipboard.writeText(`${window.location.origin}/feed/${post.slug}`);
                         alert('Intelligence link copied to secure storage.');
                      }}
                      className="p-3 glass rounded-xl hover:bg-primary/20 transition-all border-none"
