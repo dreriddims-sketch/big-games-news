@@ -1,7 +1,7 @@
 {
-  "name": "Big Games Network",
-  "short_name": "Big Games",
-  "description": "Premium News Terminal for Big Games",
+  "name": "Big Games Network v1.1",
+  "short_name": "BG Network",
+  "description": "Premium Intelligence Feed for Big Games",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#08080a",
