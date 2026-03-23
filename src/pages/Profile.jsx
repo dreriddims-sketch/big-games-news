@@ -241,22 +241,65 @@ const Profile = () => {
              </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-             <div className="premium-card p-6 bg-white/5 border-white/10 text-center">
-                <div className="text-3xl font-black text-white">{myPosts.length}</div>
-                <div className="text-[9px] uppercase font-black text-text-secondary tracking-widest mt-1">Broadcast History</div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+             {/* NETWORK POWERS CARD */}
+             <div className="premium-card p-8 bg-black/40 border-primary/20 shadow-[0_0_40px_rgba(255,153,0,0.05)] space-y-6 lg:col-span-1">
+                <div className="flex items-center gap-4">
+                   <div className="p-3 bg-primary/20 rounded-2xl text-primary"><Zap size={24} className="animate-pulse" /></div>
+                   <h3 className="text-xl font-black uppercase tracking-tighter italic">Network Powers</h3>
+                </div>
+                <div className="space-y-4">
+                   <button 
+                     onClick={() => {
+                       if (credits >= 500) {
+                          setCredits(prev => prev - 500);
+                          alert('Broadcast Boosted For 3 Hours! Returning to sector For You...');
+                       } else {
+                          alert('Insufficient credits for a Boost. Reload at the Network Hub.');
+                       }
+                     }}
+                     className="w-full p-4 bg-primary/10 hover:bg-primary text-primary hover:text-black border border-primary/20 rounded-2xl transition-all flex items-center justify-between group"
+                   >
+                     <div className="text-left">
+                        <p className="text-[10px] font-black uppercase tracking-widest leading-none">Boost Transmitter</p>
+                        <p className="text-[8px] font-black uppercase opacity-60 group-hover:opacity-100">Top of For You (3 Hrs)</p>
+                     </div>
+                     <span className="text-xs font-black">500 CR</span>
+                   </button>
+                   <div className="p-4 bg-white/5 border border-white/5 rounded-2xl opacity-40 cursor-not-allowed flex items-center justify-between">
+                     <div className="text-left">
+                        <p className="text-[10px] font-black uppercase tracking-widest leading-none">Network Cloak</p>
+                        <p className="text-[8px] font-black uppercase">Stealth browsing active (24H)</p>
+                     </div>
+                     <span className="text-xs font-black">2.5k CR</span>
+                   </div>
+                </div>
              </div>
-             <div className="premium-card p-6 bg-white/5 border-white/10 text-center text-primary shadow-[0_0_20px_rgba(255,153,0,0.1)]">
-                <div className="text-3xl font-black text-primary">{credits}</div>
-                <div className="text-[9px] uppercase font-black tracking-widest mt-1">Network Credits</div>
-             </div>
-             <div className="premium-card p-6 bg-white/5 border-white/10 text-center">
-                <div className="text-3xl font-black text-white">4.9k</div>
-                <div className="text-[9px] uppercase font-black text-text-secondary tracking-widest mt-1">Followers</div>
-             </div>
-             <div className="premium-card p-6 bg-white/5 border-white/10 text-center">
-                <div className="text-3xl font-black text-white">Top 1%</div>
-              <div className="text-[9px] uppercase font-black text-text-secondary tracking-widest mt-1">Global Influence</div>
+
+             {/* RECEIVED GIFTS CARD */}
+             <div className="premium-card p-8 bg-black/40 border-white/10 space-y-6 lg:col-span-2">
+                <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/5 rounded-2xl text-white/40"><Gift size={24} /></div>
+                      <h3 className="text-xl font-black uppercase tracking-tighter italic">Contributions Received</h3>
+                   </div>
+                   <div className="text-[10px] font-black uppercase tracking-widest text-primary">Influencer Score: 8.4k</div>
+                </div>
+                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+                   {[
+                      { name: 'Crystal Heart', icon: 'crystal_heart', count: 12 },
+                      { name: 'Digital Coin', icon: 'digital_coin', count: 5 },
+                      { name: 'Power Bolt', icon: 'lightning_bolt', count: 1 },
+                   ].map(gift => (
+                      <div key={gift.name} className="flex-shrink-0 bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4 min-w-[160px]">
+                         <img src={`/gifts/${gift.icon}.png`} className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(255,153,0,0.2)]" alt={gift.name} />
+                         <div>
+                            <p className="text-[8px] font-black uppercase text-white/40 leading-none">{gift.name}</p>
+                            <p className="text-xl font-black text-white mt-1">x{gift.count}</p>
+                         </div>
+                      </div>
+                   ))}
+                </div>
              </div>
           </div>
 
@@ -423,10 +466,10 @@ const Profile = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                    {[
-                      { id: 1, name: 'Crystal Heart', cost: 50, icon: 'crystal_heart_gift' },
-                      { id: 2, name: 'Digital Coin', cost: 100, icon: 'digital_coin_gift' },
-                      { id: 3, name: 'Power Bolt', cost: 250, icon: 'lightning_bolt_gift' },
-                      { id: 4, name: 'Golden Star', cost: 500, icon: 'golden_star_gift' }
+                      { id: 1, name: 'Crystal Heart', cost: 50, icon: 'crystal_heart' },
+                      { id: 2, name: 'Digital Coin', cost: 100, icon: 'digital_coin' },
+                      { id: 3, name: 'Power Bolt', cost: 250, icon: 'lightning_bolt' },
+                      { id: 4, name: 'Golden Star', cost: 500, icon: 'golden_star' }
                    ].map(gift => (
                       <button 
                         key={gift.id}
@@ -442,7 +485,7 @@ const Profile = () => {
                         className="group relative bg-white/5 border border-white/10 rounded-[2rem] p-6 hover:border-primary/40 hover:bg-white/10 transition-all flex flex-col items-center gap-4 overflow-hidden"
                       >
                          <div className="absolute inset-x-0 bottom-0 h-1 bg-primary/20 scale-x-0 group-hover:scale-x-100 transition-transform" />
-                         <img src={`/Users/alexbuchanan/.gemini/antigravity/brain/67246858-9af3-47a8-9ca0-f6b7ea045800/${gift.icon}_1774253590053.png`} className="w-20 h-20 object-contain drop-shadow-[0_0_15px_rgba(255,153,0,0.3)] group-hover:scale-110 transition-transform" alt={gift.name} />
+                         <img src={`/gifts/${gift.icon}.png`} className="w-20 h-20 object-contain drop-shadow-[0_0_15px_rgba(255,153,0,0.3)] group-hover:scale-110 transition-transform" alt={gift.name} />
                          <div className="text-center">
                             <p className="text-[9px] font-black uppercase text-white/40 group-hover:text-primary transition-colors">{gift.name}</p>
                             <p className="text-sm font-black text-white mt-1">{gift.cost} CR</p>
