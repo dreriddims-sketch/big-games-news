@@ -62,15 +62,22 @@ export const uploadVideoToStorage = async (file, onProgress) => {
  * Fetch all social posts from Supabase (or localStorage fallback).
  * Table: social_posts
  */
-export const fetchSocialPosts = async () => {
+export const fetchSocialPosts = async (userId = null) => {
   if (!isSupabaseConfigured) {
     const lsPosts = JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
-    return lsPosts;
+    return userId ? lsPosts.filter(p => p.userId === userId) : lsPosts;
   }
-  const { data, error } = await supabase
+  
+  let query = supabase
     .from('social_posts')
     .select('*')
     .order('created_at', { ascending: false });
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
+
+  const { data, error } = await query;
   if (error) {
     console.error('[DB] fetchSocialPosts error:', error.message);
     return JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
@@ -96,12 +103,12 @@ export const insertSocialPost = async (post) => {
       username: post.username,
       video_url: post.videoUrl,
       description: post.description,
-      status: post.status,
+      status: 'active', // FORCE ACTIVE FOR INSTANT VISIBILITY
       likes: post.likes || 0,
       comments: post.comments || 0,
       tab: post.tab || 'foryou',
       file_name: post.fileName || null,
-      created_at: post.created_at,
+      created_at: post.created_at || new Date().toISOString(),
     }])
     .select()
     .single();
