@@ -103,23 +103,72 @@ export const fetchSocialPosts = async (userId = null) => {
  * Increment the view count for a specific post.
  */
 export const incrementViews = async (id) => {
+  if (!id) return;
   if (!isSupabaseConfigured) {
     const lsPosts = JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
-    const updated = lsPosts.map(p => String(p.id) === String(id) ? { ...p, views: (p.views || 0) + 1 } : p);
+    const updated = lsPosts.map(p => String(p.id) === String(id) ? { ...p, views: (Number(p.views) || 0) + 1 } : p);
     localStorage.setItem('bg_social_posts', JSON.stringify(updated));
     return { error: null };
   }
 
-  // Use defensive update in case column doesn't exist
   try {
-    const { error } = await supabase.rpc('increment_post_views', { post_id: id });
-    if (error) {
-      // Fallback to simple increment if RPC fails
-      const { data: current } = await supabase.from('social_posts').select('views').eq('id', id).single();
-      await supabase.from('social_posts').update({ views: (current?.views || 0) + 1 }).eq('id', id);
+    // 1. Primary: Use atomic RPC
+    const { error: rpcError } = await supabase.rpc('increment_post_views', { post_id: id });
+    if (!rpcError) return { success: true };
+
+    // 2. Fallback: Direct lookup and update (if RPC not yet deployed or fails)
+    const { data: current, error: fetchError } = await supabase
+      .from('social_posts')
+      .select('views')
+      .eq('id', id)
+      .single();
+
+    if (!fetchError && current) {
+      await supabase
+        .from('social_posts')
+        .update({ views: (Number(current.views) || 0) + 1 })
+        .eq('id', id);
     }
+    return { success: true };
   } catch (err) {
-    console.error('[DB] incrementViews error:', err);
+    console.error('[DB] incrementViews critical error:', err);
+    return { error: err };
+  }
+};
+
+/**
+ * Increment the like count for a specific post.
+ */
+export const incrementLikes = async (id, amount = 1) => {
+  if (!isSupabaseConfigured) {
+    const lsPosts = JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
+    const updated = lsPosts.map(p => String(p.id) === String(id) ? { ...p, likes: (p.likes || 0) + amount } : p);
+    localStorage.setItem('bg_social_posts', JSON.stringify(updated));
+    return { error: null };
+  }
+  try {
+    const { data: current } = await supabase.from('social_posts').select('likes').eq('id', id).single();
+    await supabase.from('social_posts').update({ likes: (current?.likes || 0) + amount }).eq('id', id);
+  } catch (err) {
+    console.error('[DB] incrementLikes error:', err);
+  }
+};
+
+/**
+ * Increment the gift count for a specific post.
+ */
+export const incrementGifts = async (id, amount = 1) => {
+  if (!isSupabaseConfigured) {
+    const lsPosts = JSON.parse(localStorage.getItem('bg_social_posts') || '[]');
+    const updated = lsPosts.map(p => String(p.id) === String(id) ? { ...p, gifts: (p.gifts || 0) + amount } : p);
+    localStorage.setItem('bg_social_posts', JSON.stringify(updated));
+    return { error: null };
+  }
+  try {
+    const { data: current } = await supabase.from('social_posts').select('gifts').eq('id', id).single();
+    await supabase.from('social_posts').update({ gifts: (current?.gifts || 0) + amount }).eq('id', id);
+  } catch (err) {
+    console.error('[DB] incrementGifts error:', err);
   }
 };
 
@@ -234,7 +283,9 @@ export const updateSocialPost = async (id, updates) => {
  */
 export const fetchArticles = async () => {
   if (!isSupabaseConfigured) {
-    return JSON.parse(localStorage.getItem('bg_posts') || '[]');
+    const saved = localStorage.getItem('bg_posts');
+    if (saved) return JSON.parse(saved);
+    return mockDB?.posts || [];
   }
   const { data, error } = await supabase
     .from('posts')
@@ -268,6 +319,31 @@ export const deletePost = async (id) => {
     .eq('id', id);
   if (error) console.error('[DB] deletePost error:', error.message);
   return { error };
+};
+
+/**
+ * Fetch a specific user by ID.
+ */
+export const fetchUserSync = async (userId) => {
+  if (!isSupabaseConfigured) {
+    const savedUsers = JSON.parse(localStorage.getItem('bg_users') || '[]');
+    return savedUsers.find(u => u.id === userId);
+  }
+  const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
+  return data;
+};
+
+/**
+ * Update user profile in Supabase.
+ */
+export const supabaseUpdateUser = async (userId, updates) => {
+  if (!isSupabaseConfigured) return { error: 'Not Configured' };
+  const { data, error } = await supabase
+    .from('users')
+    .upsert({ id: userId, ...updates })
+    .select()
+    .single();
+  return { data, error };
 };
 
 

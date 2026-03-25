@@ -1,5 +1,5 @@
-/* src/context/AuthContext.jsx */
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabaseUpdateUser, fetchUserSync } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
@@ -40,6 +40,16 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (user) {
       localStorage.setItem('bg_admin_user', JSON.stringify(user));
+      // AUTO-SYNC TO CLOUD IF LOGGED IN
+      if (user.id) {
+        supabaseUpdateUser(user.id, {
+          username: user.username,
+          bio: user.bio,
+          photo: user.photo,
+          banner: user.banner,
+          likes_map: getLikesStore()[user.id] || {}
+        });
+      }
     } else {
       localStorage.removeItem('bg_admin_user');
     }
@@ -172,13 +182,13 @@ export const AuthProvider = ({ children }) => {
     return { success: true };
   };
 
-  const login = (email, password) => {
+  const login = async (email, password) => {
     // Stage 2 verification (admin)
     if (email === 'dreriddims@gmail.com' && password === 'Mtvkannon2020@1') {
       const adminUser = { id: 'admin-1', email: 'dreriddims@gmail.com', role: 'admin', username: 'dreriddims' };
       setIsAdmin(true);
       setUser(adminUser);
-      // Give admin unlimited credits if not set
+      // Give admin unlimited credits
       const store = getCreditsStore();
       if (!store['admin-1']) { store['admin-1'] = 9999; saveCreditsStore(store); }
       return true;
@@ -186,28 +196,36 @@ export const AuthProvider = ({ children }) => {
     
     // Check normal users
     const savedUsers = JSON.parse(localStorage.getItem('bg_users') || '[]');
-    // hardcoded initial fallback check if localstorage empty
+    
+    // Check info.p2sr@gmail.com (standardised fallback)
     if (email === 'info.p2sr@gmail.com' && password === 'Mtvkannon2020@1' && savedUsers.filter(u => u.id === 'u-info-p2sr').length === 0) {
       const initUser = { id: 'u-info-p2sr', email: 'info.p2sr@gmail.com', password: 'Mtvkannon2020@1', isOver18: true, role: 'user', username: 'info_p2sr', bio: 'Content Creator' };
       savedUsers.push(initUser);
       localStorage.setItem('bg_users', JSON.stringify(savedUsers));
-      // Give starter credits
-      const store = getCreditsStore();
-      if (!store['u-info-p2sr']) { store['u-info-p2sr'] = STARTER_CREDITS; saveCreditsStore(store); }
     }
 
     const foundUser = savedUsers.find(u => u.email === email && u.password === password);
     if (foundUser) {
-       // Ensure starter credits on first login
+       // Deep Sync from Supabase if available
+       const cloudUser = await fetchUserSync(foundUser.id);
+       const syncUser = cloudUser ? { ...foundUser, ...cloudUser } : foundUser;
+       
+       // Restore Likes for this device
+       if (syncUser.likes_map) {
+         const likesStore = getLikesStore();
+         likesStore[syncUser.id] = syncUser.likes_map;
+         saveLikesStore(likesStore);
+       }
+       
+       // Ensure starter credits
        const store = getCreditsStore();
-       if (store[foundUser.id] === undefined) {
-         store[foundUser.id] = STARTER_CREDITS;
+       if (store[syncUser.id] === undefined) {
+         store[syncUser.id] = STARTER_CREDITS;
          saveCreditsStore(store);
        }
-       setUser(foundUser);
+       setUser(syncUser);
        return true;
     }
-    
     return false;
   };
 
@@ -221,16 +239,21 @@ export const AuthProvider = ({ children }) => {
 
   const toggleEditMode = () => setEditMode(prev => !prev);
 
-  const updateUser = (updatedData) => {
+  const updateUser = async (updatedData) => {
     if (!user) return false;
     const updatedUser = { ...user, ...updatedData };
     setUser(updatedUser);
+    
+    // 1. Sync Mock LS
     const savedUsers = JSON.parse(localStorage.getItem('bg_users') || '[]');
     const index = savedUsers.findIndex(u => u.id === user.id);
     if (index !== -1) {
       savedUsers[index] = updatedUser;
       localStorage.setItem('bg_users', JSON.stringify(savedUsers));
     }
+
+    // 2. Sync Real Supabase
+    await supabaseUpdateUser(user.id, updatedUser);
     return true;
   };
 

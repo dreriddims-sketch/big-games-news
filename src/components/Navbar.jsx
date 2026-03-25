@@ -15,11 +15,11 @@ const Navbar = () => {
   }, [location.pathname]);
 
   const navLinks = [
-    { name: 'For You', path: '/foryou', public: true },
-    { name: 'Feed', path: '/feed', public: true },
-    { name: 'Archive', path: '/archive', public: true },
-    { name: 'Signals', path: '/signals', public: true },
-    ...(user ? [{ name: 'Social Vault', path: '/social' }] : [])
+    { name: 'Feed', path: '/foryou', public: true },
+    { name: 'News', path: '/feed', public: true },
+    { name: 'Vault', path: '/archive', public: true },
+    { name: 'Intel', path: '/signals', public: true },
+    ...(user ? [{ name: 'Store', path: '/social' }] : [])
   ];
 
   return (
@@ -39,10 +39,10 @@ const Navbar = () => {
           </div>
           <div className="flex flex-col -space-y-1">
             <span className="text-xl md:text-3xl font-black text-white uppercase tracking-tighter italic leading-none transition-colors group-hover:text-primary">
-              Network
+              Global
             </span>
             <span className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-[0.4em] leading-none">
-              News Terminal
+              Network
             </span>
           </div>
         </Link>
@@ -64,12 +64,12 @@ const Navbar = () => {
               className={`text-[11px] font-black uppercase tracking-[0.3em] transition-all ${
                 location.pathname === link.path
                   ? 'text-primary'
-                  : link.name === 'For You'
+                  : link.name === 'Feed'
                   ? 'text-white/70 hover:text-primary'
                   : 'text-white/40 hover:text-white'
-              } ${link.name === 'For You' ? 'flex items-center gap-1.5' : ''}`}
+              } ${link.name === 'Feed' ? 'flex items-center gap-1.5' : ''}`}
             >
-              {link.name === 'For You' && <Target size={12} />}
+              {link.name === 'Feed' && <Target size={12} />}
               {link.name}
             </Link>
           ))}
@@ -135,12 +135,12 @@ const Navbar = () => {
               key={link.name}
               to={link.path}
               className={`flex items-center gap-2 text-[14px] font-black uppercase tracking-[0.3em] transition-all ${
-                link.name === 'For You'
+                link.name === 'Feed'
                   ? 'text-primary'
                   : 'text-white/70 hover:text-white'
               }`}
             >
-              {link.name === 'For You' && <Target size={14} />}
+              {link.name === 'Feed' && <Target size={14} />}
               {link.name}
             </Link>
           ))}

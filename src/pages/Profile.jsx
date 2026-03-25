@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchSocialPosts, deletePost, incrementViews } from '../lib/supabase';
+import { fetchSocialPosts, deletePost, incrementViews, incrementLikes, incrementGifts } from '../lib/supabase';
 import { Video, Heart, ShieldAlert, Trash2, Edit2, Upload, Shield, Gift, Zap, Share2, X as Close, Play, TrendingUp, Users, Eye } from 'lucide-react';
 import UploadModal from '../components/UploadModal';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,7 +36,7 @@ const FloatingGifts = () => {
   );
 };
 
-const VideoModal = ({ post, isOpen, onClose, onDelete }) => {
+const VideoModal = ({ post, isOpen, onClose, onDelete, onLike, onGift }) => {
   useEffect(() => {
     if (isOpen && post) {
       incrementViews(post.id);
@@ -78,7 +78,7 @@ const VideoModal = ({ post, isOpen, onClose, onDelete }) => {
           )}
           
           {/* FLOATING ACTION BAR - MOBILE STYLE OVER VIDEO */}
-          <div className="absolute right-4 bottom-24 md:hidden flex flex-col gap-6 items-center">
+          <div className="absolute right-4 bottom-32 md:hidden flex flex-col gap-4 items-center z-50">
              <div className="flex flex-col items-center gap-1 group">
                <div className="p-4 bg-black/40 backdrop-blur-xl rounded-full text-white border border-white/10 shadow-lg">
                  <Heart size={24} className="group-hover:text-primary transition-colors" />
@@ -129,14 +129,17 @@ const VideoModal = ({ post, isOpen, onClose, onDelete }) => {
               {/* SOCIAL BUTTONS GRID */}
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
                  <button className="flex items-center justify-center gap-3 py-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all group">
-                    <Heart size={20} className="group-hover:text-primary group-hover:fill-primary transition-all" />
+                    <Heart size={20} className={`transition-all ${onLike && post && isPostLiked && isPostLiked(post.id) ? 'text-primary fill-primary' : 'group-hover:text-primary group-hover:fill-primary'}`} />
                     <div className="text-[10px] font-black uppercase tracking-widest text-white/60 group-hover:text-white">Like</div>
                  </button>
                  <button className="flex items-center justify-center gap-3 py-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all group">
                     <Share2 size={20} className="group-hover:text-primary transition-all" />
                     <div className="text-[10px] font-black uppercase tracking-widest text-white/60 group-hover:text-white">Share</div>
                  </button>
-                 <button className="flex items-center justify-center gap-3 py-4 bg-primary/10 hover:bg-primary/20 rounded-2xl transition-all group border border-primary/20 shadow-lg shadow-primary/5 relative">
+                 <button 
+                  onClick={(e) => { e.stopPropagation(); onGift && onGift(post.id); }}
+                  className="flex items-center justify-center gap-3 py-4 bg-primary/10 hover:bg-primary/20 rounded-2xl transition-all group border border-primary/20 shadow-lg shadow-primary/5 relative"
+                 >
                      <FloatingGifts />
                     <Gift size={20} className="text-primary group-hover:scale-110 transition-all relative z-10" />
                     <div className="text-[10px] font-black uppercase tracking-widest text-primary relative z-10">{post.gifts || 0} Gifts</div>
@@ -176,7 +179,33 @@ const Profile = () => {
     const [selectedPost, setSelectedPost] = useState(null);
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
     const [isGiftingOpen, setIsGiftingOpen] = useState(false);
-    const [editValue, setEditValue] = useState('');
+    const handleLike = async (postId) => {
+      const isNowLiked = toggleLike(postId);
+      incrementLikes(postId, isNowLiked ? 1 : -1);
+      
+      // Sync user profile to update cloud-side likes_map immediately
+      supabaseUpdateUser(user.id, { 
+        likes_map: (JSON.parse(localStorage.getItem('bg_likes_store') || '{}')[user.id] || {}) 
+      });
+
+      setMyPosts(prev => prev.map(p => 
+        p.id === postId ? { ...p, likes: Math.max(0, isNowLiked ? (p.likes || 0) + 1 : (p.likes || 0) - 1) } : p
+      ));
+    };
+
+    const handleGift = async (postId) => {
+      const ok = spendCredits(50);
+      if (ok) {
+        incrementGifts(postId, 1);
+        setMyPosts(prev => prev.map(p => 
+          p.id === postId ? { ...p, gifts: (p.gifts || 0) + 1 } : p
+        ));
+      }
+    };
+
+    const totalViews = React.useMemo(() => myPosts.reduce((acc, p) => acc + (p.views || 0), 0), [myPosts]);
+    const totalLikes = React.useMemo(() => myPosts.reduce((acc, p) => acc + (p.likes || 0), 0), [myPosts]);
+    const totalGifts = React.useMemo(() => myPosts.reduce((acc, p) => acc + (p.gifts || 0), 0), [myPosts]);
     const [profileData, setProfileData] = useState({
         username: user?.username || user?.email?.split('@')[0] || 'Node_Pilot',
         bio: user?.bio || '',
@@ -240,7 +269,7 @@ const Profile = () => {
     if (!user) return <Navigate to="/signin" replace />;
 
     return (
-       <div className="max-w-4xl mx-auto pb-32 relative z-10 min-h-screen bg-black/20 backdrop-blur-sm">
+       <div className="w-full pb-32 relative z-10 min-h-screen bg-black/20 backdrop-blur-sm">
           {/* BANNER SECTION */}
           <div className="relative h-48 md:h-64 w-full overflow-hidden group">
              {profileData.banner ? (
@@ -260,8 +289,8 @@ const Profile = () => {
              </button>
           </div>
 
-          {/* PROFILE HEADER - TIKTOK STYLE COMPACT CENTERED */}
-          <div className="px-4 md:px-8 -mt-12 md:-mt-16 pb-6 space-y-4 text-center">
+          {/* PROFILE HEADER - TIKTOK STYLE COMPACT CENTERED ON MOBILE, FULL ON DESKTOP */}
+          <div className="px-4 md:px-8 -mt-12 md:-mt-16 pb-6 space-y-4 text-center max-w-7xl mx-auto">
              {/* Profile Pic */}
              <div className="relative shrink-0 mx-auto">
                 <div className="w-28 h-28 md:w-36 md:h-36 rounded-full bg-black p-[4px] shadow-2xl ring-4 ring-black/40 mx-auto">
@@ -292,15 +321,15 @@ const Profile = () => {
                 {/* STATS ROW COMPACT */}
                 <div className="flex items-center justify-center gap-6 pt-2">
                    <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-sm md:text-base font-black text-white">47</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Following</span>
+                      <span className="text-sm md:text-base font-black text-white">{myPosts.length}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Posts</span>
                    </div>
                    <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-sm md:text-base font-black text-white">12.2k</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Followers</span>
+                      <span className="text-sm md:text-base font-black text-white">{totalViews.toLocaleString()}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Views</span>
                    </div>
                    <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-sm md:text-base font-black text-white">8.4k</span>
+                      <span className="text-sm md:text-base font-black text-white">{totalLikes.toLocaleString()}</span>
                       <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Likes</span>
                    </div>
                 </div>
@@ -358,7 +387,7 @@ const Profile = () => {
           {/* TAB CONTENT */}
           <div className="pt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
              {activeTab === 'videos' && (
-                <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-1 md:gap-4">
+                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-1 md:gap-4 xl:gap-6 lg:px-8">
                    {myPosts.length === 0 ? (
                       <div className="col-span-full text-center py-20 text-white/20 font-black uppercase tracking-widest text-xs border border-white/5 rounded-3xl">
                          No transmissions in archive sector.
@@ -488,6 +517,8 @@ const Profile = () => {
             isOpen={!!selectedPost} 
             onClose={() => setSelectedPost(null)} 
             onDelete={deletePost} 
+            onLike={handleLike}
+            onGift={handleGift}
           />
 
           {/* EDIT PROFILE MODAL */}

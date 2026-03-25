@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Heart, Share2, Gift, Play, Zap, UserPlus, MessageCircle, X, Volume2, VolumeX, Eye, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { fetchSocialPosts, fetchArticles, incrementViews } from '../lib/supabase';
+import { fetchSocialPosts, fetchArticles, incrementViews, incrementLikes, incrementGifts } from '../lib/supabase';
 import AdPost from '../components/AdPost';
 
 
@@ -19,10 +19,11 @@ const GiftPanel = ({ post, onClose }) => {
   const { spendCredits, currentCredits, user } = useAuth();
   const [sent, setSent] = useState(null);
 
-  const handleGift = (gift) => {
+  const handleGift = async (gift) => {
     if (!user) return;
     const ok = spendCredits(gift.cost);
     if (ok) {
+      incrementGifts(post.id, 1);
       setSent(gift);
       setTimeout(() => { setSent(null); onClose(); }, 1500);
     }
@@ -202,9 +203,9 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
                exit={{ scale: 1.2, opacity: 0 }}
                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none"
              >
-               <div className="bg-black/60 backdrop-blur-3xl p-10 rounded-full border border-white/20 text-white shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-                 {isMuted ? <VolumeX size={64} className="text-white/80" /> : <Volume2 size={64} className="text-primary" />}
-               </div>
+                <div className="bg-black/40 backdrop-blur-3xl p-6 rounded-full border border-white/10 text-white shadow-2xl">
+                  {isMuted ? <VolumeX size={32} className="text-white/80" /> : <Volume2 size={32} className="text-primary" />}
+                </div>
              </motion.div>
            )}
         </AnimatePresence>
@@ -227,7 +228,7 @@ const VideoPost = React.memo(({ post, isLiked, onLike, onGift, activePostId, lik
               </div>
               <div className="flex flex-col">
                 <span className="font-black text-white text-lg drop-shadow-lg italic">@{post.username || 'user'}</span>
-                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-primary">Certified Contributor</span>
+                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-primary">Verified</span>
               </div>
               <button className="px-4 py-1.5 bg-white text-black font-black text-[10px] uppercase rounded-full hover:bg-primary transition-all ml-2 pointer-events-auto shadow-lg">Follow</button>
             </div>
@@ -289,7 +290,7 @@ const ArticlePost = React.memo(({ post, isLiked, onLike, onGift, likeCount, onTa
           className="space-y-8"
         >
           <div className="flex items-center gap-4">
-            <span className="px-4 py-1.5 bg-primary text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-full shadow-[0_0_20px_rgba(255,153,0,0.3)]">INTELLIGENCE_SIGNAL</span>
+            <span className="px-4 py-1.5 bg-primary text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-full shadow-[0_0_20px_rgba(255,153,0,0.3)]">Global News</span>
             <div className="h-px w-12 bg-white/20" />
             <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.3em] font-mono">
               {new Date(post.created_at).toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' })}
@@ -313,43 +314,60 @@ const ArticlePost = React.memo(({ post, isLiked, onLike, onGift, likeCount, onTa
               to={`/feed/${post.slug || post.id}`}
               className="px-10 py-5 bg-primary text-black text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-white transition-all flex items-center gap-3 group shadow-[0_10px_40px_rgba(255,153,0,0.2)]"
             >
-              Access Data Stream <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
+              Full Story <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
             </Link>
           </div>
         </motion.div>
 
-        {/* Article Sidebar Interactions */}
-        <div className="flex flex-col gap-6 items-center pb-32 pointer-events-auto">
-          <button onClick={(e) => { e.stopPropagation(); onLike(post.id); }} className="flex flex-col items-center gap-1 group">
-            <div className={`p-4 rounded-full backdrop-blur-2xl border transition-all group-active:scale-90 shadow-2xl ${isLiked ? 'bg-red-500/40 border-red-500/60' : 'bg-black/40 border-white/20'}`}>
-              <Heart size={24} className={`transition-colors ${isLiked ? 'text-red-400 fill-red-400' : 'text-white'}`} />
-            </div>
-            <span className="text-[10px] font-black text-white drop-shadow-lg uppercase tracking-widest">{likeCount || 0}</span>
-          </button>
-          
-          <div className="flex flex-col items-center gap-1 group">
-            <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 shadow-2xl group-hover:bg-white/10 group-active:scale-95 transition-all">
-              <Eye size={24} className="text-white/80 group-hover:text-primary transition-colors" />
-            </div>
-            <span className="text-[10px] font-black text-white/60 drop-shadow-lg uppercase tracking-widest leading-none">{post.views || 0}</span>
-          </div>
-
-          <button onClick={(e) => { e.stopPropagation(); onGift(post.id); }} className="flex flex-col items-center gap-1 group relative">
-            <FloatingGifts />
-            <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all group-active:scale-90 shadow-2xl relative z-10">
-              <Gift size={24} className="text-white group-hover:text-primary transition-colors" />
-            </div>
-            <span className="text-[10px] font-black text-white drop-shadow-lg uppercase tracking-widest leading-none mt-1 text-center">{post.gifts || 0} GIFTS</span>
-          </button>
-
+        {/* Sidebar Interactions - Latched Right, Smaller & Closer */}
+        <div className="absolute right-4 md:right-8 bottom-32 z-30 flex flex-col gap-3 items-center pointer-events-auto">
+          {/* Like */}
           <button 
-            onClick={() => navigator.share?.({ title: post.title, url: window.location.origin + '/feed/' + (post.slug || post.id) })}
+            onClick={(e) => { e.stopPropagation(); onLike && onLike(post.id); }} 
             className="flex flex-col items-center gap-1 group"
           >
-            <div className="p-4 rounded-full bg-black/40 backdrop-blur-2xl border border-white/20 group-hover:bg-white/10 transition-all group-active:scale-90 shadow-2xl">
-              <Share2 size={24} className="text-white group-hover:text-primary transition-colors" />
+            <div className={`p-3 md:p-3.5 rounded-full backdrop-blur-3xl border transition-all active:scale-90 shadow-2xl ${isLiked ? 'bg-red-500/40 border-red-500/60' : 'bg-black/40 border-white/10'}`}>
+              <Heart size={20} className={`transition-colors ${isLiked ? 'text-red-400 fill-red-400' : 'text-white'}`} />
             </div>
-            <span className="text-[10px] font-black text-white/60 drop-shadow-lg uppercase tracking-widest leading-none mt-1 text-center">SHARE</span>
+            <span className="text-[9px] font-black text-white drop-shadow-md uppercase tracking-widest">{likeCount || 0}</span>
+          </button>
+          
+          {/* Views */}
+          <div className="flex flex-col items-center gap-1">
+            <div className="p-3 md:p-3.5 rounded-full bg-black/40 backdrop-blur-3xl border border-white/10 shadow-2xl transition-all">
+              <Eye size={20} className="text-white/70" />
+            </div>
+            <span className="text-[9px] font-black text-white/50 drop-shadow-md uppercase tracking-widest leading-none">{(post.views || 0)}</span>
+          </div>
+
+          {/* Gifts */}
+          <button 
+            onClick={(e) => { e.stopPropagation(); onGift && onGift(post.id); }} 
+            className="flex flex-col items-center gap-1 group relative"
+          >
+            <FloatingGifts />
+            <div className="p-3 md:p-3.5 rounded-full bg-black/40 backdrop-blur-3xl border border-white/10 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all active:scale-90 shadow-2xl relative z-10">
+              <Gift size={20} className="text-white group-hover:text-primary transition-colors" />
+            </div>
+            <span className="text-[9px] font-black text-white/50 drop-shadow-md uppercase tracking-widest leading-none text-center">{(post.gifts || 0)}</span>
+          </button>
+
+          {/* Share */}
+          <button 
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({ title: post.title, url: window.location.origin + '/foryou/' + post.id });
+              } else {
+                alert('Link copied to clipboard!');
+                navigator.clipboard.writeText(window.location.origin + '/foryou/' + post.id);
+              }
+            }}
+            className="flex flex-col items-center gap-1 group"
+          >
+            <div className="p-3 md:p-3.5 rounded-full bg-black/40 backdrop-blur-3xl border border-white/10 group-hover:bg-white/10 transition-all active:scale-90 shadow-2xl">
+              <Share2 size={20} className="text-white/70" />
+            </div>
+            <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] leading-none">Share</span>
           </button>
         </div>
       </div>
@@ -382,14 +400,20 @@ const ForYouPage = ({ mode = 'mixed' }) => {
 
       const normalisedSocial = allSocial
         .filter(p => p.status !== 'pending')
-        .map(p => ({ ...p, type: 'video' }));
+        .map(p => ({ 
+          ...p, 
+          type: 'video',
+          id: p.id || `v-${Date.now()}-${Math.random()}`
+        }));
 
       const normalisedArticles = allArticles.map(p => ({ 
         ...p, 
         type: 'article',
-        id: p.id.toString(),
+        id: (p.id ? p.id.toString() : `a-${Date.now()}-${Math.random()}`),
         created_at: p.created_at || new Date().toISOString()
       }));
+
+      console.log(`[MixedFeed] Loaded: ${normalisedSocial.length} videos, ${normalisedArticles.length} articles`);
 
       const combined = [...normalisedSocial, ...normalisedArticles]
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -417,7 +441,12 @@ const ForYouPage = ({ mode = 'mixed' }) => {
       normalisedSocial.forEach(p => { counts[p.id] = p.likes || 0; });
       normalisedArticles.forEach(p => { counts[p.id] = (p.likes || 0); });
       
-      const bumps = JSON.parse(localStorage.getItem('bg_like_bumps') || '{}');
+      let bumps = {};
+      try {
+        bumps = JSON.parse(localStorage.getItem('bg_like_bumps') || '{}');
+      } catch (err) {
+        console.warn('[Feed] Bumps parse error:', err);
+      }
       Object.keys(bumps).forEach(id => {
         if (counts[id] !== undefined) counts[id] = (counts[id]) + bumps[id];
       });
@@ -426,9 +455,13 @@ const ForYouPage = ({ mode = 'mixed' }) => {
     load();
   }, []);
 
-  const handleLike = (postId) => {
+  const handleLike = async (postId) => {
     const wasLiked = isPostLiked(postId);
     toggleLike(postId);
+    
+    // Sync to Supabase
+    incrementLikes(postId, wasLiked ? -1 : 1);
+
     const bumps = JSON.parse(localStorage.getItem('bg_like_bumps') || '{}');
     if (wasLiked) bumps[postId] = Math.max(0, (bumps[postId] || 1) - 1);
     else bumps[postId] = (bumps[postId] || 0) + 1;
@@ -449,9 +482,9 @@ const ForYouPage = ({ mode = 'mixed' }) => {
           </Link>
           <div className="flex flex-col">
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 flex items-center gap-2">
-              <Zap size={10} className="text-primary" /> {filterTag ? `TAG: #${filterTag.toUpperCase()}` : mode === 'news' ? 'News Feed' : 'For You'} 
+              <Zap size={10} className="text-primary" /> {filterTag ? `TAG: #${filterTag.toUpperCase()}` : mode === 'news' ? 'News' : 'Feed'} 
             </span>
-            <span className="text-[8px] font-black uppercase tracking-[0.1em] text-primary">{mode === 'news' ? 'LIVE_ARTICLE_STREAM' : 'LIVE_MIXED_FEED'}</span>
+            <span className="text-[8px] font-black uppercase tracking-[0.1em] text-primary">{mode === 'news' ? 'NEWS_STREAM' : 'NETWORK_FEED'}</span>
           </div>
         </div>
 
